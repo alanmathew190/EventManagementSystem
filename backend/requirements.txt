@@ -1,0 +1,27 @@
+Django>=5.2
+djangorestframework
+djangorestframework-simplejwt
+
+# Auth & Security
+PyJWT
+
+# CORS (React ↔ Django)
+django-cors-headers
+
+# Image handling (for QR codes)
+Pillow
+
+# Environment variables
+python-dotenv
+
+# Database (PostgreSQL – Neon/Render)
+psycopg2-binary
+dj-database-url
+
+# Production server
+gunicorn
+
+# Django utilities
+asgiref
+pytz
+sqlparse

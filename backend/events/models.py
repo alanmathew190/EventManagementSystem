@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -30,3 +31,24 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+    
+class EventRegistration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    # payment + QR logic
+    is_paid = models.BooleanField(default=False)
+    qr_token = models.UUIDField(default=uuid.uuid4, unique=True)
+
+    # scan / attendance
+    is_scanned = models.BooleanField(default=False)
+    scanned_at = models.DateTimeField(null=True, blank=True)
+
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "event")  # PREVENT DUPLICATES
+
+    def __str__(self):
+        return f"{self.user.username} → {self.event.title}"
+

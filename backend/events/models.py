@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+import qrcode
+from django.core.files import File
+from io import BytesIO
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -39,6 +42,8 @@ class EventRegistration(models.Model):
     # payment + QR logic
     is_paid = models.BooleanField(default=False)
     qr_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    
+    qr_code = models.ImageField(upload_to="registration_qr/", null=True, blank=True)
 
     # scan / attendance
     is_scanned = models.BooleanField(default=False)
@@ -51,4 +56,12 @@ class EventRegistration(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.event.title}"
+    
+    def generate_qr(self):
+        """Generate a QR code for this registration"""
+        qr_img = qrcode.make(str(self.qr_token))  # encode UUID
+        blob = BytesIO()
+        qr_img.save(blob, 'PNG')
+        blob.seek(0)
+        self.qr_code.save(f"qr_{self.user.username}_{self.id}.png", File(blob), save=False)
 

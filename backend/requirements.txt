@@ -25,3 +25,6 @@ gunicorn
 asgiref
 pytz
 sqlparse
+
+qrcode
+Pillow

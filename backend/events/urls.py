@@ -16,10 +16,11 @@ urlpatterns = [
     path("events/<int:event_id>/join/", join_event),
 
     # 💳 Confirm payment (paid events)
-    path("events/payment/<int:registration_id>/confirm/", confirm_payment),
+    path("payments/confirm/<int:registration_id>/", confirm_payment),
 
     # 📸 Scan QR (attendance)
     path("events/scan-qr/", scan_qr),
+    
 ]
 
 urlpatterns += router.urls

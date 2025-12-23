@@ -59,10 +59,12 @@ def join_event(request, event_id):
             event=event,
             is_paid=True
         )
+        registration.generate_qr()
+        registration.save()
 
         return Response({
-            "message": "Successfully registered for free event",
-            "qr_token": str(registration.qr_token)
+            "message": "Registered Successfully",
+            "qr_code": registration.qr_code.url
         })
 
     # 💰 PAID EVENT (payment pending)
@@ -83,7 +85,6 @@ def confirm_payment(request, registration_id):
     registration = get_object_or_404(
         EventRegistration,
         id=registration_id,
-        user=request.user
     )
 
     if registration.is_paid:
@@ -94,11 +95,12 @@ def confirm_payment(request, registration_id):
 
     # ✅ Simulate payment success
     registration.is_paid = True
+    registration.generate_qr()
     registration.save()
 
     return Response({
         "message": "Payment successful",
-        "qr_token": str(registration.qr_token)
+        "qr_token":  registration.qr_code.url
     })
 
 @api_view(["POST"])

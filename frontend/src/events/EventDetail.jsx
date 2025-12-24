@@ -77,7 +77,21 @@ export default function EventDetail() {
 
       <p className="text-gray-700 mb-4">{event.description}</p>
 
-      <p className="text-sm text-gray-600">📍 {event.location}</p>
+      <p className="text-gray-700">
+        Location: <strong>{event.place_name}</strong>
+      </p>
+
+      {event.location && (
+        <a
+          href={event.location}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-2 text-blue-600 underline"
+        >
+          📍 View on Google Maps
+        </a>
+      )}
+
       <p className="text-sm text-gray-600 mb-2">
         🗓 {new Date(event.date).toLocaleString()}
       </p>

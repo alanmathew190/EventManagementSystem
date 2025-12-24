@@ -7,6 +7,7 @@ export default function CreateEvent() {
     title: "",
     description: "",
     category: "free",
+    place_name: "",
     location: "",
     date: "",
     capacity: 50,
@@ -91,13 +92,27 @@ export default function CreateEvent() {
 
         <input
           type="text"
+          name="place_name"
+          placeholder="Place name (e.g., Lulu Mall Kochi)"
+          value={form.place_name}
+          onChange={handleChange}
+          required
+          className="w-full border p-2"
+        />
+
+        <input
+          type="text"
           name="location"
-          placeholder="Location"
+          placeholder="Google Maps link"
           value={form.location}
           onChange={handleChange}
           required
           className="w-full border p-2"
         />
+
+        <p className="text-xs text-gray-500">
+          Open Google Maps → Share → Copy link
+        </p>
 
         <input
           type="datetime-local"

@@ -7,11 +7,14 @@ import Home from "./pages/Home";
 import EventList from "./events/EventList";
 import EventDetail from "./events/EventDetail";
 import CreateEvent from "./host/CreateEvent";
-import ScanQR from "./admin/ScanQR";
+
 import MyEvents from "./events/MyEvents";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import HostedEvents from "./host/HostedEvents";
+import ScanEventQR from "./host/ScanEventQR";
+import EventAttendees from "./host/EventAttendees";
 
 function App() {
   return (
@@ -64,10 +67,28 @@ function App() {
         />
 
         <Route
-          path="/admin/scan"
+          path="/hosted-events"
           element={
             <ProtectedRoute>
-              <ScanQR />
+              <HostedEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/host/scan/:eventId"
+          element={
+            <ProtectedRoute>
+              <ScanEventQR />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hosted-events/:eventId/attendees"
+          element={
+            <ProtectedRoute>
+              <EventAttendees />
             </ProtectedRoute>
           }
         />

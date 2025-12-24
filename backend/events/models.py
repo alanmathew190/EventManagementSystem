@@ -16,6 +16,7 @@ class Event(models.Model):
     description = models.TextField()
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
 
+    place_name = models.CharField(max_length=200)
     location = models.CharField(max_length=200)
     date = models.DateTimeField()
 

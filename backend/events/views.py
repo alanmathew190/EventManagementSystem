@@ -15,9 +15,10 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Event.objects.filter(approved=True).order_by("-created_at")
 
-        location = self.request.query_params.get("location")
-        if location:
-            queryset = queryset.filter(location__icontains=location)
+        # 🔍 Location search using place_name
+        place = self.request.query_params.get("location")
+        if place:
+            queryset = queryset.filter(place_name__icontains=place)
 
         return queryset
 
@@ -121,6 +122,15 @@ def scan_qr(request):
         is_paid=True
     )
 
+    event = registration.event
+
+    # 🔒 ONLY HOST OF THIS EVENT CAN SCAN
+    if request.user != event.host:
+        return Response(
+            {"error": "You are not authorized to scan this event QR"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
     if registration.is_scanned:
         return Response(
             {"error": "QR already scanned"},
@@ -134,9 +144,10 @@ def scan_qr(request):
     return Response({
         "message": "Attendance marked successfully",
         "user": registration.user.username,
-        "event": registration.event.title,
+        "event": event.title,
         "scanned_at": registration.scanned_at
     })
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -155,7 +166,95 @@ def my_events(request):
             "date": reg.event.date,
             "category": reg.event.category,
             "qr_image": reg.qr_code.url if reg.qr_code else None,
+             "qr_token": str(reg.qr_token),
             "is_scanned": reg.is_scanned,
         })
 
     return Response(data)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def hosted_events(request):
+    events = Event.objects.filter(host=request.user)
+
+    data = []
+    for event in events:
+        data.append({
+            "id": event.id,
+            "title": event.title,
+            "date": event.date,
+            "location": event.location,
+            "capacity": event.capacity,
+            "approved": event.approved,
+            "attendees_count": EventRegistration.objects.filter(event=event).count(),
+        })
+
+    return Response(data)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def event_attendees(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    # 🔒 Only host can view attendees
+    if request.user != event.host:
+        return Response(
+            {"error": "You are not authorized to view attendees for this event"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    registrations = EventRegistration.objects.filter(
+        event=event,
+        is_paid=True
+    ).select_related("user")
+
+    data = []
+    for reg in registrations:
+        data.append({
+            "username": reg.user.username,
+            "is_scanned": reg.is_scanned,
+            "scanned_at": reg.scanned_at,
+        })
+
+    return Response({
+        "event": event.title,
+        "attendees": data
+    })
+    
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    # 🔒 Only host can delete
+    if request.user != event.host:
+        return Response(
+            {"error": "Not authorized"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    # ❌ Paid events cannot be deleted
+    if event.category == "paid":
+        return Response(
+            {"error": "Paid events cannot be deleted"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # ✅ Soft cancel instead of hard delete
+    event.is_cancelled = True
+    event.cancel_message = "Event canceled by host"
+    event.save()
+
+    return Response(
+        {"message": "Event canceled successfully"},
+        status=status.HTTP_200_OK
+    )
+    
+def perform_update(self, serializer):
+    event = self.get_object()
+
+    if self.request.user != event.host:
+        raise PermissionDenied("You cannot edit this event")
+
+    serializer.save()
+

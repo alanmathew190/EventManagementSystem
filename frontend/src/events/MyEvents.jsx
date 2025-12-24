@@ -37,7 +37,16 @@ export default function MyEvents() {
           <div key={event.event_id} className="border rounded-lg p-4 shadow">
             <h2 className="text-lg font-semibold">{event.title}</h2>
 
-            <p className="text-sm text-gray-600">📍 {event.location}</p>
+            {event.location && (
+              <a
+                href={event.location}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-blue-600 underline"
+              >
+                📍 View on Google Maps
+              </a>
+            )}
 
             <p className="text-sm text-gray-600">
               🗓 {new Date(event.date).toLocaleString()}
@@ -62,11 +71,17 @@ export default function MyEvents() {
             </p>
 
             {event.qr_image && (
-              <img
-                src={`http://127.0.0.1:8000${event.qr_image}`}
-                alt="QR Code"
-                className="mt-3 w-40 border"
-              />
+              <div className="mt-3">
+                <img
+                  src={`http://127.0.0.1:8000${event.qr_image}`}
+                  alt="QR Code"
+                  className="w-40 border mb-2"
+                />
+
+                <p className="text-xs text-gray-600 break-all">
+                  <strong>QR Token:</strong> {event.qr_token}
+                </p>
+              </div>
             )}
           </div>
         ))}

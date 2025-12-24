@@ -1,76 +1,90 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
 
 export default function EventList() {
   const [events, setEvents] = useState([]);
+  const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+
+  const fetchEvents = async (loc = "") => {
+    setLoading(true);
+    try {
+      const res = await api.get(
+        loc ? `/events/events/?location=${loc}` : "/events/events/"
+      );
+      setEvents(res.data);
+    } catch (err) {
+      console.error("Failed to load events", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await api.get("/events/events/");
-        setEvents(res.data);
-      } catch (err) {
-        setError("Failed to load events");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchEvents();
   }, []);
 
-  if (loading) {
-    return <p className="p-6">Loading events...</p>;
-  }
-
-  if (error) {
-    return <p className="p-6 text-red-500">{error}</p>;
-  }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchEvents(location);
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Available Events</h1>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Available Events</h1>
 
-      {events.length === 0 && (
-        <p className="text-gray-500">No events available</p>
+      {/* 🔍 Location Search */}
+      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          placeholder="Search by location..."
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="flex-1 border p-2 rounded"
+        />
+
+        <button type="submit" className="bg-blue-600 text-white px-4 rounded">
+          Search
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setLocation("");
+            fetchEvents();
+          }}
+          className="bg-gray-500 text-white px-4 rounded"
+        >
+          Clear
+        </button>
+      </form>
+
+      {loading && <p>Loading events...</p>}
+
+      {!loading && events.length === 0 && (
+        <p className="text-gray-600">No events found for this location.</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {events.map((event) => (
-          <div
-            key={event.id}
-            className="border rounded-lg p-4 shadow hover:shadow-lg transition"
-          >
-            <h2 className="text-lg font-semibold mb-2">{event.title}</h2>
+          <div key={event.id} className="border p-4 rounded shadow bg-white">
+                <h2 className="text-lg font-semibold">{event.title}</h2>
+                
+            <p className="text-sm text-gray-600">📍 {event.place_name}</p>
 
-            <p className="text-sm text-gray-600 mb-1">📍 {event.location}</p>
+            <p className="text-sm text-gray-600">📍 {event.location}</p>
 
-            <p className="text-sm text-gray-600 mb-1">
+            <p className="text-sm text-gray-600">
               🗓 {new Date(event.date).toLocaleString()}
             </p>
 
-            <p
-              className={`inline-block px-2 py-1 text-xs rounded mb-3 ${
-                event.category === "free"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
+            <Link
+              to={`/events/${event.id}`}
+              className="inline-block mt-3 text-blue-600 hover:underline"
             >
-              {event.category === "free"
-                ? "Free Event"
-                : `Paid Event • ₹${event.price}`}
-            </p>
-
-            <button
-              onClick={() => navigate(`/events/${event.id}`)}
-              className="mt-3 w-full bg-blue-600 text-white py-2 rounded"
-            >
-              View Details
-            </button>
+              View Details →
+            </Link>
           </div>
         ))}
       </div>

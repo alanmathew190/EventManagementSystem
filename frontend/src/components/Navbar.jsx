@@ -19,7 +19,7 @@ export default function Navbar() {
         <Link to="/events">Events</Link>
         <Link to="/my-events">My Events</Link>
         <Link to="/host/create">Host Event</Link>
-        <Link to="/admin/scan">Scan QR</Link>
+        <Link to="/hosted-events">Hosted Events</Link>
       </div>
 
       <div className="flex items-center space-x-4">

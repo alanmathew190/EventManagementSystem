@@ -14,6 +14,7 @@ class EventSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "category",
+            "place_name",
             "location",
             "date",
             "capacity",

@@ -100,8 +100,9 @@ def confirm_payment(request, registration_id):
 
     return Response({
         "message": "Payment successful",
-        "qr_token":  registration.qr_code.url
+        "qr_image": registration.qr_code.url  # ✅ THIS IS THE FIX
     })
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])

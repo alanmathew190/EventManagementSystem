@@ -23,7 +23,12 @@ export default function Login() {
         console.log("LOGIN RESPONSE:", res.data);
 
       // Save access token
-      login(res.data);
+     login({
+       access: res.data.access,
+       refresh: res.data.refresh,
+       username: username, // ✅ ADD THIS
+     });
+
 
       navigate("/events");
     } catch (err) {

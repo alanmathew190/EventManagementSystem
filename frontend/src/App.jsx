@@ -8,6 +8,7 @@ import EventList from "./events/EventList";
 import EventDetail from "./events/EventDetail";
 import CreateEvent from "./host/CreateEvent";
 import ScanQR from "./admin/ScanQR";
+import MyEvents from "./events/MyEvents";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -15,27 +16,17 @@ import Navbar from "./components/Navbar";
 function App() {
   return (
     <>
-      {/* Navbar shown only when logged in (optional logic inside Navbar) */}
       <Navbar />
 
       <Routes>
-        {/* Default */}
-        <Route path="/" element={<Navigate to="/events" />} />
+        {/* ✅ PUBLIC HOME PAGE */}
+        <Route path="/" element={<Home />} />
 
-        {/* Public routes */}
+        {/* Public auth routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         {/* Protected routes */}
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/events"
           element={
@@ -50,6 +41,15 @@ function App() {
           element={
             <ProtectedRoute>
               <EventDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
             </ProtectedRoute>
           }
         />
@@ -73,7 +73,7 @@ function App() {
         />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
   );

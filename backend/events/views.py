@@ -137,3 +137,25 @@ def scan_qr(request):
         "event": registration.event.title,
         "scanned_at": registration.scanned_at
     })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_events(request):
+    registrations = EventRegistration.objects.filter(
+        user=request.user,
+        is_paid=True
+    ).select_related("event")
+
+    data = []
+    for reg in registrations:
+        data.append({
+            "event_id": reg.event.id,
+            "title": reg.event.title,
+            "location": reg.event.location,
+            "date": reg.event.date,
+            "category": reg.event.category,
+            "qr_image": reg.qr_code.url if reg.qr_code else None,
+            "is_scanned": reg.is_scanned,
+        })
+
+    return Response(data)

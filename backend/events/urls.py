@@ -6,6 +6,7 @@ from .views import (
     join_event,
     confirm_payment,
     scan_qr,
+    my_events
 )
 
 router = DefaultRouter()
@@ -20,6 +21,9 @@ urlpatterns = [
 
     # 📸 Scan QR (attendance)
     path("events/scan-qr/", scan_qr),
+    
+    path("my-events/", my_events),
+
     
 ]
 

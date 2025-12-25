@@ -20,79 +20,122 @@ export default function MyEvents() {
     fetchMyEvents();
   }, []);
 
-  if (loading) return <p className="p-6">Loading your events...</p>;
+  if (loading) {
+    return <p className="p-8 text-gray-600">Loading your events…</p>;
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">My Joined Events</h1>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Events</h1>
+          <p className="text-gray-600">
+            Track your registrations, approvals, and event entry QR codes.
+          </p>
+        </div>
 
-      {events.length === 0 && (
-        <p className="text-gray-500">You haven’t joined any events yet.</p>
-      )}
+        {events.length === 0 && (
+          <p className="text-gray-500">You haven’t joined any events yet.</p>
+        )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {events.map((event) => (
-          <div key={event.event_id} className="border rounded-lg p-4 shadow">
-            <h2 className="text-lg font-semibold">{event.title}</h2>
-
-            <p className="text-sm text-gray-600">📍 {event.place_name}</p>
-
-            {event.location && (
-              <a
-                href={event.location}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-1 text-blue-600 underline"
-              >
-                View on Google Maps
-              </a>
-            )}
-
-            <p className="text-sm text-gray-600 mt-2">
-              🗓 {new Date(event.date).toLocaleString()}
-            </p>
-
-            <span
-              className={`inline-block mt-2 px-2 py-1 text-xs rounded ${
-                event.category === "free"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
+        {/* Event Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {events.map((event) => (
+            <div
+              key={event.event_id}
+              className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
-              {event.category === "free" ? "Free" : "Paid"}
-            </span>
+              {/* Top Accent Bar */}
+              <div
+                className={`h-1 ${
+                  event.category === "free" ? "bg-emerald-500" : "bg-indigo-500"
+                }`}
+              />
 
-            {/* Attendance */}
-            <p
-              className={`mt-2 text-sm ${
-                event.is_scanned ? "text-green-600" : "text-orange-600"
-              }`}
-            >
-              {event.is_scanned ? "✅ Attendance Marked" : "⏳ Not Yet Scanned"}
-            </p>
+              <div className="p-5">
+                {/* Title */}
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                  {event.title}
+                </h2>
 
-            {/* Approval status */}
-            {!event.is_approved && (
-              <p className="mt-2 text-yellow-600 text-sm">
-                ⏳ Waiting for host approval
-              </p>
-            )}
-
-            {/* 🎟️ QR — ONLY AFTER APPROVAL */}
-            {event.is_approved && event.qr_image && (
-              <div className="mt-4 text-center">
-                <img
-                  src={`http://127.0.0.1:8000${event.qr_image}`}
-                  alt="QR Code"
-                  className="w-40 mx-auto border mb-2"
-                />
-                <p className="text-xs text-gray-600 break-all">
-                  <strong>QR Token:</strong> {event.qr_token}
+                {/* Location */}
+                <p className="text-sm text-gray-600 mb-1">
+                  📍 {event.place_name}
                 </p>
+
+                {event.location && (
+                  <a
+                    href={event.location}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-indigo-600 hover:underline"
+                  >
+                    View on Google Maps
+                  </a>
+                )}
+
+                {/* Date */}
+                <p className="text-sm text-gray-500 mt-2">
+                  🗓 {new Date(event.date).toLocaleString()}
+                </p>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      event.category === "free"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-indigo-100 text-indigo-700"
+                    }`}
+                  >
+                    {event.category === "free" ? "Free Event" : "Paid Event"}
+                  </span>
+
+                  {event.is_scanned ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                      ✅ Attended
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                      ⏳ Not Scanned
+                    </span>
+                  )}
+                </div>
+
+                {/* Approval Status */}
+                {!event.is_approved && (
+                  <div className="mt-4 text-sm text-amber-600 font-medium">
+                    ⏳ Waiting for host approval
+                  </div>
+                )}
+
+                {/* QR Ticket */}
+                {event.is_approved && event.qr_image && (
+                  <div className="mt-6 bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      🎟 Entry Ticket
+                    </p>
+
+                    <img
+                      src={`http://127.0.0.1:8000${event.qr_image}`}
+                      alt="QR Code"
+                      className="w-40 mx-auto mb-3"
+                    />
+
+                    <p className="text-[11px] text-gray-500 break-all">
+                      <strong>QR Token:</strong> {event.qr_token}
+                    </p>
+
+                    <p className="text-xs text-gray-500 mt-2">
+                      Show this QR at the event entrance
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

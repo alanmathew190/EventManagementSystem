@@ -27,13 +27,12 @@ export default function EventAttendees() {
     try {
       await api.post(`/events/approve/${registrationId}/`);
 
-      // Update UI instantly
       setAttendees((prev) =>
         prev.map((a) =>
           a.id === registrationId ? { ...a, is_approved: true } : a
         )
       );
-    } catch (err) {
+    } catch {
       alert("Approval failed");
     }
   };
@@ -42,61 +41,110 @@ export default function EventAttendees() {
     a.username.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <p className="p-6">Loading attendees...</p>;
+  if (loading) return <p className="p-6 text-gray-600">Loading attendees…</p>;
   if (error) return <p className="p-6 text-red-600">{error}</p>;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Attendees – {eventTitle}</h1>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Attendees</h1>
+          <p className="text-gray-600">
+            {eventTitle} — Manage approvals and attendance
+          </p>
+        </div>
 
-      {/* 🔍 Search */}
-      <input
-        type="text"
-        placeholder="Search by username..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4 w-full border p-2 rounded"
-      />
+        {/* Search */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search by username..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-1/3 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
 
-      {filteredAttendees.length === 0 && (
-        <p className="text-gray-600">No matching attendees found.</p>
-      )}
+        {/* Empty */}
+        {filteredAttendees.length === 0 && (
+          <p className="text-gray-500">No matching attendees found.</p>
+        )}
 
-      <table className="w-full border-collapse border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2 text-left">Username</th>
-            <th className="border p-2 text-center">Attendance</th>
-            <th className="border p-2 text-center">Scanned At</th>
-            <th className="border p-2 text-center">Approval</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAttendees.map((a, index) => (
-            <tr key={index}>
-              <td className="border p-2">{a.username}</td>
-              <td className="border p-2 text-center">
-                {a.is_scanned ? "✅ Present" : "⏳ Not Scanned"}
-              </td>
-              <td className="border p-2 text-center">
-                {a.scanned_at ? new Date(a.scanned_at).toLocaleString() : "-"}
-              </td>
-              <td className="border p-2 text-center">
-                {a.is_approved ? (
-                  <span className="text-green-600 font-semibold">Approved</span>
-                ) : (
-                  <button
-                    onClick={() => approveAttendee(a.id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded"
+        {/* Table */}
+        {filteredAttendees.length > 0 && (
+          <div className="overflow-x-auto bg-white border rounded-2xl shadow-sm">
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-3 text-left text-sm font-semibold text-gray-700">
+                    Username
+                  </th>
+                  <th className="p-3 text-center text-sm font-semibold text-gray-700">
+                    Attendance
+                  </th>
+                  <th className="p-3 text-center text-sm font-semibold text-gray-700">
+                    Scanned At
+                  </th>
+                  <th className="p-3 text-center text-sm font-semibold text-gray-700">
+                    Approval
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredAttendees.map((a) => (
+                  <tr
+                    key={a.id}
+                    className="border-t hover:bg-gray-50 transition"
                   >
-                    Approve
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                    {/* Username */}
+                    <td className="p-3 text-sm text-gray-900 font-medium">
+                      {a.username}
+                    </td>
+
+                    {/* Attendance */}
+                    <td className="p-3 text-center">
+                      {a.is_scanned ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                          Present
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          Not Scanned
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Scanned Time */}
+                    <td className="p-3 text-center text-sm text-gray-600">
+                      {a.scanned_at
+                        ? new Date(a.scanned_at).toLocaleString()
+                        : "—"}
+                    </td>
+
+                    {/* Approval */}
+                    <td className="p-3 text-center">
+                      {a.is_approved ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                          Approved
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => approveAttendee(a.id)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition"
+                        >
+                          Approve
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

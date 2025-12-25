@@ -31,62 +31,101 @@ export default function EventList() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Available Events</h1>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* 🔷 Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Discover Events
+          </h1>
+          <p className="text-gray-600">
+            Explore upcoming events and join experiences around you.
+          </p>
+        </div>
 
-      {/* 🔍 Location Search */}
-      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Search by location..."
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="flex-1 border p-2 rounded"
-        />
-
-        <button type="submit" className="bg-blue-600 text-white px-4 rounded">
-          Search
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setLocation("");
-            fetchEvents();
-          }}
-          className="bg-gray-500 text-white px-4 rounded"
+        {/* 🔍 Search Bar */}
+        <form
+          onSubmit={handleSearch}
+          className="bg-white p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3 mb-10"
         >
-          Clear
-        </button>
-      </form>
+          <input
+            type="text"
+            placeholder="Search by place or city..."
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
 
-      {loading && <p>Loading events...</p>}
+          <button
+            type="submit"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-semibold transition"
+          >
+            Search
+          </button>
 
-      {!loading && events.length === 0 && (
-        <p className="text-gray-600">No events found for this location.</p>
-      )}
+          <button
+            type="button"
+            onClick={() => {
+              setLocation("");
+              fetchEvents();
+            }}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm font-semibold transition"
+          >
+            Clear
+          </button>
+        </form>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {events.map((event) => (
-          <div key={event.id} className="border p-4 rounded shadow bg-white">
-                <h2 className="text-lg font-semibold">{event.title}</h2>
-                
-            <p className="text-sm text-gray-600">📍 {event.place_name}</p>
+        {/* ⏳ Loading */}
+        {loading && <p className="text-gray-600">Loading events...</p>}
 
-            <p className="text-sm text-gray-600">📍 {event.location}</p>
+        {/* ❌ No Results */}
+        {!loading && events.length === 0 && (
+          <p className="text-gray-600">No events found for this location.</p>
+        )}
 
-            <p className="text-sm text-gray-600">
-              🗓 {new Date(event.date).toLocaleString()}
-            </p>
-
-            <Link
-              to={`/events/${event.id}`}
-              className="inline-block mt-3 text-blue-600 hover:underline"
+        {/* 🎟 Event Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <div
+              key={event.id}
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition"
             >
-              View Details →
-            </Link>
-          </div>
-        ))}
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                {event.title}
+              </h2>
+
+              {event.place_name && (
+                <p className="text-sm text-gray-700 mb-1">
+                  📍 {event.place_name}
+                </p>
+              )}
+
+              <p className="text-sm text-gray-500 mb-2">
+                🗓 {new Date(event.date).toLocaleString()}
+              </p>
+
+              {/* Category Badge */}
+              <span
+                className={`inline-block mb-4 px-3 py-1 rounded-full text-xs font-medium ${
+                  event.category === "free"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-indigo-100 text-indigo-700"
+                }`}
+              >
+                {event.category === "free" ? "Free Event" : "Paid Event"}
+              </span>
+
+              <div className="mt-2">
+                <Link
+                  to={`/events/${event.id}`}
+                  className="text-indigo-600 hover:text-indigo-700 text-sm font-semibold"
+                >
+                  View Details →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

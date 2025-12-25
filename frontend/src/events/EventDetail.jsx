@@ -35,10 +35,10 @@ export default function EventDetail() {
 
       if (res.data.registration_id) {
         setRegistrationId(res.data.registration_id);
-        setMessage("💰 Registered. Please pay and wait for host approval.");
-      }
-
-      if (res.data.message && !res.data.registration_id) {
+        setMessage(
+          "💰 Registered. Please complete payment and wait for approval."
+        );
+      } else {
         setMessage(res.data.message);
       }
     } catch (err) {
@@ -52,7 +52,7 @@ export default function EventDetail() {
 
     try {
       await api.post(`/events/payments/confirm/${registrationId}/`);
-      setMessage("✅ Payment received. Waiting for host approval.");
+      setMessage("✅ Payment submitted. Waiting for host approval.");
     } catch {
       setError("Payment failed");
     }
@@ -62,79 +62,106 @@ export default function EventDetail() {
   if (!event) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
-      <p className="text-gray-700 mb-4">{event.description}</p>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-3xl mx-auto px-6">
+        {/* 🧾 Event Card */}
+        <div className="bg-white rounded-2xl shadow-sm border p-6">
+          {/* Title */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            {event.title}
+          </h1>
 
-      <p>
-        Location: <strong>{event.place_name}</strong>
-      </p>
-
-      {event.location && (
-        <a
-          href={event.location}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 underline"
-        >
-          View on Google Maps
-        </a>
-      )}
-
-      <p className="text-sm text-gray-600 mt-2">
-        🗓 {new Date(event.date).toLocaleString()}
-      </p>
-
-      <p className="text-sm text-gray-600">
-        👥 Capacity: {event.attendees_count} / {event.capacity}
-      </p>
-
-      <span
-        className={`inline-block mt-3 px-3 py-1 rounded text-sm ${
-          event.category === "free"
-            ? "bg-green-100 text-green-700"
-            : "bg-blue-100 text-blue-700"
-        }`}
-      >
-        {event.category === "free"
-          ? "Free Event"
-          : `Paid Event • ₹${event.price}`}
-      </span>
-
-      {/* Payment QR */}
-      {event.category === "paid" && event.payment_qr && (
-        <div className="mt-4 text-center">
-          <img
-            src={event.payment_qr}
-            alt="Payment QR"
-            className="w-48 mx-auto"
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            Pay using this QR and wait for host approval.
+          {/* Description */}
+          <p className="text-gray-700 mb-6 leading-relaxed">
+            {event.description}
           </p>
+
+          {/* Meta Info */}
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>
+              📍 <strong>{event.place_name}</strong>
+            </p>
+
+            {event.location && (
+              <a
+                href={event.location}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:underline"
+              >
+                View on Google Maps
+              </a>
+            )}
+
+            <p>🗓 {new Date(event.date).toLocaleString()}</p>
+            <p>
+              👥 Capacity: {event.attendees_count} / {event.capacity}
+            </p>
+          </div>
+
+          {/* Category Badge */}
+          <div className="mt-4">
+            <span
+              className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${
+                event.category === "free"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-indigo-100 text-indigo-700"
+              }`}
+            >
+              {event.category === "free"
+                ? "Free Event"
+                : `Paid Event • ₹${event.price}`}
+            </span>
+          </div>
+
+          {/* 💳 Payment QR */}
+          {event.category === "paid" && event.payment_qr && (
+            <div className="mt-8 text-center border-t pt-6">
+              <h3 className="font-semibold text-gray-800 mb-3">Payment QR</h3>
+              <img
+                src={event.payment_qr}
+                alt="Payment QR"
+                className="w-48 mx-auto border rounded-lg"
+              />
+              <p className="text-sm text-gray-600 mt-2">
+                Scan to pay. Approval will be granted by the host.
+              </p>
+            </div>
+          )}
+
+          {/* 🎯 Actions */}
+          <div className="mt-8 space-y-3">
+            {!registrationId && (
+              <button
+                onClick={handleJoin}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition"
+              >
+                Join Event
+              </button>
+            )}
+
+            {registrationId && (
+              <button
+                onClick={handlePayment}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold transition"
+              >
+                I Have Paid
+              </button>
+            )}
+          </div>
+
+          {/* 🟢 Status Messages */}
+          {message && (
+            <p className="mt-6 text-center text-emerald-600 font-medium">
+              {message}
+            </p>
+          )}
+
+          {error && (
+            <p className="mt-6 text-center text-red-600 font-medium">{error}</p>
+          )}
         </div>
-      )}
-
-      {!registrationId && (
-        <button
-          onClick={handleJoin}
-          className="block w-full mt-4 bg-blue-600 text-white py-2 rounded"
-        >
-          Join Event
-        </button>
-      )}
-
-      {registrationId && (
-        <button
-          onClick={handlePayment}
-          className="block w-full mt-4 bg-green-600 text-white py-2 rounded"
-        >
-          I Have Paid
-        </button>
-      )}
-
-      {message && <p className="mt-4 text-green-600">{message}</p>}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      </div>
     </div>
   );
 }

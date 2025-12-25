@@ -72,7 +72,8 @@ def join_event(request, event_id):
     registration = EventRegistration.objects.create(
         user=user,
         event=event,
-        is_paid=False
+        is_paid=False,
+        is_approved=False
     )
 
     return Response({
@@ -119,7 +120,8 @@ def scan_qr(request):
     registration = get_object_or_404(
         EventRegistration,
         qr_token=qr_token,
-        is_paid=True
+        is_paid=True,
+        isApproved=True
     )
 
     event = registration.event
@@ -153,8 +155,7 @@ def scan_qr(request):
 @permission_classes([IsAuthenticated])
 def my_events(request):
     registrations = EventRegistration.objects.filter(
-        user=request.user,
-        is_paid=True
+        user=request.user
     ).select_related("event")
 
     data = []
@@ -162,15 +163,23 @@ def my_events(request):
         data.append({
             "event_id": reg.event.id,
             "title": reg.event.title,
-            "location": reg.event.location,
             "date": reg.event.date,
             "category": reg.event.category,
-            "qr_image": reg.qr_code.url if reg.qr_code else None,
-             "qr_token": str(reg.qr_token),
+            "place_name": reg.event.place_name,
+            "location": reg.event.location,
+
+            # ✅ REGISTRATION STATUS
+            "is_paid": reg.is_paid,
+            "is_approved": reg.is_approved,
             "is_scanned": reg.is_scanned,
+
+            # ✅ QR DETAILS (ONLY AFTER APPROVAL)
+            "qr_image": reg.qr_code.url if reg.qr_code else None,
+            "qr_token": str(reg.qr_token) if reg.qr_token else None,
         })
 
     return Response(data)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -204,57 +213,44 @@ def event_attendees(request, event_id):
         )
 
     registrations = EventRegistration.objects.filter(
-        event=event,
-        is_paid=True
+        event=event
     ).select_related("user")
 
     data = []
     for reg in registrations:
         data.append({
+            "id": reg.id,                    # ✅ REGISTRATION ID (CRITICAL)
             "username": reg.user.username,
             "is_scanned": reg.is_scanned,
             "scanned_at": reg.scanned_at,
+            "is_approved": reg.is_approved,  # ✅ REQUIRED FOR UI
         })
 
     return Response({
         "event": event.title,
         "attendees": data
     })
-    
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def delete_event(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
 
-    # 🔒 Only host can delete
-    if request.user != event.host:
+    
+
+
+    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def approve_registration(request, registration_id):
+    registration = get_object_or_404(EventRegistration, id=registration_id)
+
+    # Only host can approve
+    if registration.event.host != request.user:
         return Response(
             {"error": "Not authorized"},
             status=status.HTTP_403_FORBIDDEN
         )
 
-    # ❌ Paid events cannot be deleted
-    if event.category == "paid":
-        return Response(
-            {"error": "Paid events cannot be deleted"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    registration.is_paid = True
+    registration.is_approved = True
+    registration.generate_qr()
+    registration.save()
 
-    # ✅ Soft cancel instead of hard delete
-    event.is_cancelled = True
-    event.cancel_message = "Event canceled by host"
-    event.save()
-
-    return Response(
-        {"message": "Event canceled successfully"},
-        status=status.HTTP_200_OK
-    )
-    
-def perform_update(self, serializer):
-    event = self.get_object()
-
-    if self.request.user != event.host:
-        raise PermissionDenied("You cannot edit this event")
-
-    serializer.save()
-
+    return Response({"message": "User approved successfully"})

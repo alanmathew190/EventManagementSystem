@@ -103,16 +103,12 @@ export default function CreateEvent() {
         <input
           type="text"
           name="location"
-          placeholder="Google Maps link"
+          placeholder="Google Maps link ( Open Google Maps → Share → Copy link )"
           value={form.location}
           onChange={handleChange}
           required
           className="w-full border p-2"
         />
-
-        <p className="text-xs text-gray-500">
-          Open Google Maps → Share → Copy link
-        </p>
 
         <input
           type="datetime-local"

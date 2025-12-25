@@ -27,6 +27,12 @@ class Event(models.Model):
 
     # QR will be generated only for paid events
     qr_code = models.ImageField(upload_to="qr_codes/", null=True, blank=True)
+    
+    payment_qr = models.ImageField(
+    upload_to="payment_qr/",
+    null=True,
+    blank=True
+)
 
     # Admin approval
     approved = models.BooleanField(default=False)
@@ -51,6 +57,10 @@ class EventRegistration(models.Model):
     scanned_at = models.DateTimeField(null=True, blank=True)
 
     registered_at = models.DateTimeField(auto_now_add=True)
+
+    is_approved = models.BooleanField(default=False)
+
+ 
 
     class Meta:
         unique_together = ("user", "event")  # PREVENT DUPLICATES

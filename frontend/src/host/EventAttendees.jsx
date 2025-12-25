@@ -23,6 +23,21 @@ export default function EventAttendees() {
       .finally(() => setLoading(false));
   }, [eventId]);
 
+  const approveAttendee = async (registrationId) => {
+    try {
+      await api.post(`/events/approve/${registrationId}/`);
+
+      // Update UI instantly
+      setAttendees((prev) =>
+        prev.map((a) =>
+          a.id === registrationId ? { ...a, is_approved: true } : a
+        )
+      );
+    } catch (err) {
+      alert("Approval failed");
+    }
+  };
+
   const filteredAttendees = attendees.filter((a) =>
     a.username.toLowerCase().includes(search.toLowerCase())
   );
@@ -53,6 +68,7 @@ export default function EventAttendees() {
             <th className="border p-2 text-left">Username</th>
             <th className="border p-2 text-center">Attendance</th>
             <th className="border p-2 text-center">Scanned At</th>
+            <th className="border p-2 text-center">Approval</th>
           </tr>
         </thead>
         <tbody>
@@ -64,6 +80,18 @@ export default function EventAttendees() {
               </td>
               <td className="border p-2 text-center">
                 {a.scanned_at ? new Date(a.scanned_at).toLocaleString() : "-"}
+              </td>
+              <td className="border p-2 text-center">
+                {a.is_approved ? (
+                  <span className="text-green-600 font-semibold">Approved</span>
+                ) : (
+                  <button
+                    onClick={() => approveAttendee(a.id)}
+                    className="bg-green-600 text-white px-3 py-1 rounded"
+                  >
+                    Approve
+                  </button>
+                )}
               </td>
             </tr>
           ))}

@@ -20,9 +20,7 @@ export default function MyEvents() {
     fetchMyEvents();
   }, []);
 
-  if (loading) {
-    return <p className="p-6">Loading your events...</p>;
-  }
+  if (loading) return <p className="p-6">Loading your events...</p>;
 
   return (
     <div className="p-6">
@@ -37,18 +35,20 @@ export default function MyEvents() {
           <div key={event.event_id} className="border rounded-lg p-4 shadow">
             <h2 className="text-lg font-semibold">{event.title}</h2>
 
+            <p className="text-sm text-gray-600">📍 {event.place_name}</p>
+
             {event.location && (
               <a
                 href={event.location}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-2 text-blue-600 underline"
+                className="inline-block mt-1 text-blue-600 underline"
               >
-                📍 View on Google Maps
+                View on Google Maps
               </a>
             )}
 
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mt-2">
               🗓 {new Date(event.date).toLocaleString()}
             </p>
 
@@ -62,6 +62,7 @@ export default function MyEvents() {
               {event.category === "free" ? "Free" : "Paid"}
             </span>
 
+            {/* Attendance */}
             <p
               className={`mt-2 text-sm ${
                 event.is_scanned ? "text-green-600" : "text-orange-600"
@@ -70,14 +71,21 @@ export default function MyEvents() {
               {event.is_scanned ? "✅ Attendance Marked" : "⏳ Not Yet Scanned"}
             </p>
 
-            {event.qr_image && (
-              <div className="mt-3">
+            {/* Approval status */}
+            {!event.is_approved && (
+              <p className="mt-2 text-yellow-600 text-sm">
+                ⏳ Waiting for host approval
+              </p>
+            )}
+
+            {/* 🎟️ QR — ONLY AFTER APPROVAL */}
+            {event.is_approved && event.qr_image && (
+              <div className="mt-4 text-center">
                 <img
                   src={`http://127.0.0.1:8000${event.qr_image}`}
                   alt="QR Code"
-                  className="w-40 border mb-2"
+                  className="w-40 mx-auto border mb-2"
                 />
-
                 <p className="text-xs text-gray-600 break-all">
                   <strong>QR Token:</strong> {event.qr_token}
                 </p>

@@ -9,6 +9,7 @@ from .views import (
     my_events,
     hosted_events,
     event_attendees,
+    approve_registration
 )
 
 router = DefaultRouter()
@@ -29,6 +30,8 @@ urlpatterns = [
     path("hosted/", hosted_events),
     
     path("hosted/<int:event_id>/attendees/", event_attendees),
+
+    path("approve/<int:registration_id>/", approve_registration),
 
 
 

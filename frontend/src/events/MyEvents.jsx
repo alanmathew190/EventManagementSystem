@@ -52,7 +52,11 @@ export default function MyEvents() {
                   event.category === "free" ? "bg-emerald-500" : "bg-indigo-500"
                 }`}
               />
-
+              {new Date(event.date) < new Date() && (
+                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                  Completed
+                </span>
+              )}
               <div className="p-5">
                 {/* Title */}
                 <h2 className="text-lg font-semibold text-gray-900 mb-1">

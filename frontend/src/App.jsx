@@ -15,6 +15,7 @@ import Navbar from "./components/Navbar";
 import HostedEvents from "./host/HostedEvents";
 import ScanEventQR from "./host/ScanEventQR";
 import EventAttendees from "./host/EventAttendees";
+import AdminDashboard from "./admin/AdminDashboard";
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EventList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

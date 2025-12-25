@@ -7,9 +7,15 @@ export default function EventDetail() {
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
   const [registrationId, setRegistrationId] = useState(null);
+  const [showPayment, setShowPayment] = useState(false);
+
+  const [paymentRef, setPaymentRef] = useState("");
+
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -33,12 +39,13 @@ export default function EventDetail() {
     try {
       const res = await api.post(`/events/events/${id}/join/`);
 
+      // Paid event → show payment section
       if (res.data.registration_id) {
         setRegistrationId(res.data.registration_id);
-        setMessage(
-          "💰 Registered. Please complete payment and wait for approval."
-        );
+        setShowPayment(true);
+        setMessage("💰 Registered. Please complete payment.");
       } else {
+        // Free event
         setMessage(res.data.message);
       }
     } catch (err) {
@@ -46,17 +53,27 @@ export default function EventDetail() {
     }
   };
 
-  const handlePayment = async () => {
-    setError("");
-    setMessage("");
+const handlePayment = async () => {
+  setError("");
+  setMessage("");
 
-    try {
-      await api.post(`/events/payments/confirm/${registrationId}/`);
-      setMessage("✅ Payment submitted. Waiting for host approval.");
-    } catch {
-      setError("Payment failed");
-    }
-  };
+  if (!paymentRef.trim()) {
+    setError("Please enter payment reference ID");
+    return;
+  }
+
+  try {
+    await api.post(`/events/payments/confirm/${registrationId}/`, {
+      payment_reference: paymentRef,
+    });
+
+    setMessage("✅ Payment submitted. Waiting for host approval.");
+    setShowPayment(false);
+  } catch {
+    setError("Payment submission failed");
+  }
+};
+
 
   if (loading) return <p className="p-6">Loading...</p>;
   if (!event) return <p className="p-6 text-red-500">{error}</p>;
@@ -64,7 +81,6 @@ export default function EventDetail() {
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-3xl mx-auto px-6">
-        {/* 🧾 Event Card */}
         <div className="bg-white rounded-2xl shadow-sm border p-6">
           {/* Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-3">
@@ -76,7 +92,7 @@ export default function EventDetail() {
             {event.description}
           </p>
 
-          {/* Meta Info */}
+          {/* Meta */}
           <div className="space-y-2 text-sm text-gray-600">
             <p>
               📍 <strong>{event.place_name}</strong>
@@ -99,7 +115,7 @@ export default function EventDetail() {
             </p>
           </div>
 
-          {/* Category Badge */}
+          {/* Category */}
           <div className="mt-4">
             <span
               className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${
@@ -114,43 +130,53 @@ export default function EventDetail() {
             </span>
           </div>
 
-          {/* 💳 Payment QR */}
-          {event.category === "paid" && event.payment_qr && (
-            <div className="mt-8 text-center border-t pt-6">
-              <h3 className="font-semibold text-gray-800 mb-3">Payment QR</h3>
-              <img
-                src={event.payment_qr}
-                alt="Payment QR"
-                className="w-48 mx-auto border rounded-lg"
+          {/* 🎯 JOIN BUTTON */}
+          {!registrationId && (
+            <button
+              onClick={handleJoin}
+              className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition"
+            >
+              Join Event
+            </button>
+          )}
+
+          {/* 💳 PAYMENT SECTION (ONLY AFTER JOIN) */}
+          {showPayment && event.category === "paid" && (
+            <div className="mt-6 p-5 border rounded-xl bg-yellow-50">
+              <p className="font-semibold text-gray-800 mb-1">
+                Payment Required
+              </p>
+
+              <p className="text-sm text-gray-700">
+                Pay to UPI ID:
+                <span className="ml-2 font-mono text-blue-600">
+                  {event.upi_id}
+                </span>
+              </p>
+
+              <input
+                type="text"
+                placeholder="Enter Payment Reference ID"
+                value={paymentRef}
+                onChange={(e) => setPaymentRef(e.target.value)}
+                className="w-full mt-4 border p-2 rounded"
+                required
               />
-              <p className="text-sm text-gray-600 mt-2">
-                Scan to pay. Approval will be granted by the host.
+
+              <button
+                onClick={handlePayment}
+                className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold transition"
+              >
+                I Have Paid
+              </button>
+
+              <p className="text-xs text-gray-600 mt-2">
+                Enter the transaction/reference ID you received after payment.
               </p>
             </div>
           )}
 
-          {/* 🎯 Actions */}
-          <div className="mt-8 space-y-3">
-            {!registrationId && (
-              <button
-                onClick={handleJoin}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition"
-              >
-                Join Event
-              </button>
-            )}
-
-            {registrationId && (
-              <button
-                onClick={handlePayment}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold transition"
-              >
-                I Have Paid
-              </button>
-            )}
-          </div>
-
-          {/* 🟢 Status Messages */}
+          {/* Messages */}
           {message && (
             <p className="mt-6 text-center text-emerald-600 font-medium">
               {message}

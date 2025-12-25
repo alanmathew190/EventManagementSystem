@@ -116,6 +116,18 @@ export default function CreateEvent() {
                   required
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  UPI ID
+                </label>
+                <input
+                  type="text"
+                  name="upi_id"
+                  placeholder="UPI ID (e.g. alan@okaxis)"
+                  value={form.upi_id}
+                  onChange={handleChange}
+                  required
+                  className="w-full border p-2 rounded"
+                />
               </div>
             )}
 

@@ -4,6 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework.permissions import IsAdminUser
+
+from rest_framework.permissions import IsAdminUser
 
 from .models import Event, EventRegistration
 from .serializers import EventSerializer
@@ -13,15 +16,18 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Event.objects.filter(approved=True).order_by("-created_at")
+        now = timezone.now()
 
-        # 🔍 Location search using place_name
+        queryset = Event.objects.filter(
+            approved=True,
+             date__gte=now      # ✅ ONLY FUTURE EVENTS
+        ).order_by("date")     # upcoming first
+
         place = self.request.query_params.get("location")
         if place:
             queryset = queryset.filter(place_name__icontains=place)
 
         return queryset
-
     def perform_create(self, serializer):
         serializer.save(host=self.request.user, approved=False)
 
@@ -84,25 +90,29 @@ def join_event(request, event_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def confirm_payment(request, registration_id):
-    registration = get_object_or_404(
-        EventRegistration,
-        id=registration_id,
-    )
+    registration = get_object_or_404(EventRegistration, id=registration_id)
 
     if registration.is_paid:
         return Response(
-            {"error": "Payment already completed"},
+            {"error": "Payment already submitted"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # ✅ Simulate payment success
+    payment_reference = request.data.get("payment_reference")
+
+    if not payment_reference:
+        return Response(
+            {"error": "Payment reference is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Save payment info (approval still pending)
+    registration.payment_reference = payment_reference
     registration.is_paid = True
-    registration.generate_qr()
     registration.save()
 
     return Response({
-        "message": "Payment successful",
-        "qr_image": registration.qr_code.url  # ✅ THIS IS THE FIX
+        "message": "Payment submitted successfully. Waiting for host approval."
     })
 
 
@@ -121,7 +131,7 @@ def scan_qr(request):
         EventRegistration,
         qr_token=qr_token,
         is_paid=True,
-        isApproved=True
+        is_approved=True   # ✅ FIXED
     )
 
     event = registration.event
@@ -208,7 +218,7 @@ def event_attendees(request, event_id):
     # 🔒 Only host can view attendees
     if request.user != event.host:
         return Response(
-            {"error": "You are not authorized to view attendees for this event"},
+            {"error": "You are not authorized to view attendees"},
             status=status.HTTP_403_FORBIDDEN
         )
 
@@ -219,11 +229,16 @@ def event_attendees(request, event_id):
     data = []
     for reg in registrations:
         data.append({
-            "id": reg.id,                    # ✅ REGISTRATION ID (CRITICAL)
+            "id": reg.id,  # ✅ REQUIRED for approve button
             "username": reg.user.username,
+
+            # ✅ THIS WAS MISSING
+            "payment_reference": reg.payment_reference,
+
+            "is_paid": reg.is_paid,
+            "is_approved": reg.is_approved,
             "is_scanned": reg.is_scanned,
             "scanned_at": reg.scanned_at,
-            "is_approved": reg.is_approved,  # ✅ REQUIRED FOR UI
         })
 
     return Response({
@@ -231,7 +246,6 @@ def event_attendees(request, event_id):
         "attendees": data
     })
 
-    
 
 
     
@@ -254,3 +268,57 @@ def approve_registration(request, registration_id):
     registration.save()
 
     return Response({"message": "User approved successfully"})
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def admin_events(request):
+    events = Event.objects.all().order_by("-created_at")
+
+    data = []
+    for event in events:
+        data.append({
+            "id": event.id,
+            "title": event.title,
+            "host": event.host.username,
+            "category": event.category,
+            "date": event.date,
+            "approved": event.approved,
+        })
+
+    return Response(data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def approve_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    event.approved = True
+    event.save()
+    return Response({"message": "Event approved"})
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def pending_events(request):
+    events = Event.objects.filter(approved=False)
+
+    data = []
+    for event in events:
+        data.append({
+            "id": event.id,
+            "title": event.title,
+            "host": event.host.username,
+            "place_name": event.place_name,
+            "date": event.date,
+            "category": event.category,
+            "price": event.price,
+            "capacity": event.capacity,
+        })
+
+    return Response(data)
+
+
+
+

@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { authTokens, username, logout } = useContext(AuthContext);
+  const { authTokens, username, logout, isAdmin } = useContext(AuthContext);
   const navigate = useNavigate();
 
   if (!authTokens) return null;
@@ -44,6 +44,11 @@ export default function Navbar() {
             >
               Hosted Events
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="text-indigo-600 font-semibold">
+                Admin Panel
+              </Link>
+            )}
           </div>
         </div>
 

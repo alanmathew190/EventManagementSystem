@@ -80,6 +80,8 @@ export default function EventAttendees() {
                   <th className="p-3 text-left text-sm font-semibold text-gray-700">
                     Username
                   </th>
+                  <th className="border p-2">Payment Ref</th>
+
                   <th className="p-3 text-center text-sm font-semibold text-gray-700">
                     Attendance
                   </th>
@@ -101,6 +103,10 @@ export default function EventAttendees() {
                     {/* Username */}
                     <td className="p-3 text-sm text-gray-900 font-medium">
                       {a.username}
+                    </td>
+                    {/* paymentid */}
+                    <td className="border p-2 text-sm font-mono">
+                      {a.payment_reference || "-"}
                     </td>
 
                     {/* Attendance */}

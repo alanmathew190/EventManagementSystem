@@ -28,12 +28,12 @@ class Event(models.Model):
     # QR will be generated only for paid events
     qr_code = models.ImageField(upload_to="qr_codes/", null=True, blank=True)
     
-    payment_qr = models.ImageField(
-    upload_to="payment_qr/",
-    null=True,
-    blank=True
-)
-
+    upi_id = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="UPI ID for payment (paid events only)"
+    )
     # Admin approval
     approved = models.BooleanField(default=False)
 
@@ -60,7 +60,11 @@ class EventRegistration(models.Model):
 
     is_approved = models.BooleanField(default=False)
 
- 
+    payment_reference = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = ("user", "event")  # PREVENT DUPLICATES

@@ -20,6 +20,7 @@ class EventSerializer(serializers.ModelSerializer):
             "capacity",
             "attendees",
             "attendees_count",
+            "upi_id",
             "price",
             "qr_code",
             "approved",

@@ -115,7 +115,7 @@ export default function MyEvents() {
                     ⏳ Waiting for host approval
                   </div>
                 )}
-                
+
                 {/* QR Ticket */}
                 {event.is_approved && event.qr_token && (
                   <div className="mt-6 bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">

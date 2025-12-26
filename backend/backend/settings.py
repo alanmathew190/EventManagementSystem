@@ -35,6 +35,9 @@ INSTALLED_APPS = [
 
     "accounts",
     "events",
+    
+    "cloudinary",
+    "cloudinary_storage",
 ]
 
 # =========================
@@ -114,6 +117,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 # =========================
 # REST FRAMEWORK
 # =========================
@@ -132,3 +137,4 @@ CORS_ALLOW_ALL_ORIGINS = True
 # DEFAULT PRIMARY KEY
 # =========================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+

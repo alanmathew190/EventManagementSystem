@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const[email,setEmail]=useState("")
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -15,6 +16,7 @@ export default function Register() {
     try {
       await api.post("/accounts/register/", {
         username,
+        email,
         password,
       });
 
@@ -56,7 +58,14 @@ export default function Register() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
-
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full p-2 border mb-3"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password

@@ -2,6 +2,9 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // Attach access token
@@ -32,7 +35,7 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/accounts/refresh/",
+          `${import.meta.env.VITE_API_BASE_URL}accounts/refresh/`,
           { refresh: tokens.refresh }
         );
 
@@ -45,7 +48,7 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
 
         return api(originalRequest);
-      } catch (err) {
+      } catch {
         localStorage.removeItem("authTokens");
         window.location.href = "/login";
       }

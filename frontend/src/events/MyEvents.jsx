@@ -128,7 +128,7 @@ export default function MyEvents() {
                       bgColor="#ffffff"
                       fgColor="#000000"
                       level="H"
-                      className="ml-43"
+                      className="ml-40"
                     />
 
                     <p className="text-[11px] text-gray-500 break-all">

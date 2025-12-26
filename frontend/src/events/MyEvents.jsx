@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { QRCodeCanvas } from "qrcode.react";
+
 
 export default function MyEvents() {
   const [events, setEvents] = useState([]);
@@ -113,18 +115,19 @@ export default function MyEvents() {
                     ⏳ Waiting for host approval
                   </div>
                 )}
-
+                
                 {/* QR Ticket */}
-                {event.is_approved && event.qr_image && (
+                {event.is_approved && event.qr_token && (
                   <div className="mt-6 bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       🎟 Entry Ticket
                     </p>
-
-                    <img
-                      src={`http://127.0.0.1:8000${event.qr_image}`}
-                      alt="QR Code"
-                      className="w-40 mx-auto mb-3"
+                    <QRCodeCanvas
+                      value={event.qr_token}
+                      size={180}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      level="H"
                     />
 
                     <p className="text-[11px] text-gray-500 break-all">

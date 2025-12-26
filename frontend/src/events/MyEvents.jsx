@@ -122,14 +122,17 @@ export default function MyEvents() {
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       🎟 Entry Ticket
                     </p>
-                    <QRCodeCanvas
-                      value={event.qr_token}
-                      size={180}
-                      bgColor="#ffffff"
-                      fgColor="#000000"
-                      level="H"
-                      className="ml-40"
-                    />
+
+                    {/* Centered QR */}
+                    <div className="flex justify-center mb-3">
+                      <QRCodeCanvas
+                        value={event.qr_token}
+                        size={180}
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                        level="H"
+                      />
+                    </div>
 
                     <p className="text-[11px] text-gray-500 break-all">
                       <strong>QR Token:</strong> {event.qr_token}

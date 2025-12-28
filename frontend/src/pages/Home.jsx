@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">
       {/* 🔷 Hero Section */}
-      <section className="max-w-5xl mx-auto px-6 text-center">
+      <section className="max-w-5xl mx-auto px-6 pt-24 md:pt-32 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
           Welcome to <span className="text-indigo-600">EventSphere</span>
         </h1>

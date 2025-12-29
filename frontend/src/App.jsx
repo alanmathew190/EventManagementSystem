@@ -16,6 +16,7 @@ import HostedEvents from "./host/HostedEvents";
 import ScanEventQR from "./host/ScanEventQR";
 import EventAttendees from "./host/EventAttendees";
 import AdminDashboard from "./admin/AdminDashboard";
+import GoogleSuccess from "./pages/GoogleSuccess";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
       <Routes>
         {/* ✅ PUBLIC HOME PAGE */}
         <Route path="/" element={<Home />} />
+        <Route path="/google-success" element={<GoogleSuccess />} />
 
         {/* Public auth routes */}
         <Route path="/login" element={<Login />} />

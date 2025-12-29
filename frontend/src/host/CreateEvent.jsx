@@ -1,6 +1,8 @@
 import { useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
+import { successToast, errorToast } from "../utils/toast";
 
 export default function CreateEvent() {
   const navigate = useNavigate();
@@ -19,8 +21,9 @@ export default function CreateEvent() {
 
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,15 +32,11 @@ export default function CreateEvent() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-    }
+    if (file) setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
+  const submitEvent = async () => {
+    setLoading(true);
 
     try {
       const formData = new FormData();
@@ -54,13 +53,17 @@ export default function CreateEvent() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setMessage("✅ Event created successfully. Waiting for admin approval.");
-      setTimeout(() => navigate("/events"), 2000);
+      successToast("Event created successfully 🎉 Waiting for admin approval");
+      setConfirmOpen(false);
+
+      setTimeout(() => navigate("/events"), 1500);
     } catch (err) {
-      setError(
+      errorToast(
         err.response?.data?.error ||
           "Failed to create event. Please check the details."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,14 +78,20 @@ export default function CreateEvent() {
             Upload your event poster and share the details with attendees.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* POSTER UPLOAD */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setConfirmOpen(true);
+            }}
+            className="space-y-6"
+          >
+            {/* POSTER */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Event Poster
               </label>
 
-              <div className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer hover:border-indigo-500 transition">
+              <div className="border-2 border-dashed rounded-xl p-4 text-center hover:border-indigo-500 transition">
                 <input
                   type="file"
                   accept="image/*"
@@ -107,52 +116,39 @@ export default function CreateEvent() {
             </div>
 
             {/* TITLE */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Event Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <input
+              type="text"
+              name="title"
+              placeholder="Event Title"
+              value={form.title}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-4 py-2"
+            />
 
             {/* DESCRIPTION */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows="4"
-                value={form.description}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <textarea
+              name="description"
+              rows="4"
+              placeholder="Event Description"
+              value={form.description}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-4 py-2"
+            />
 
             {/* CATEGORY */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Event Type
-              </label>
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="free">Free Event</option>
-                <option value="paid">Paid Event</option>
-              </select>
-            </div>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-2"
+            >
+              <option value="free">Free Event</option>
+              <option value="paid">Paid Event</option>
+            </select>
 
-            {/* PAID DETAILS */}
+            {/* PAID */}
             {form.category === "paid" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
@@ -216,18 +212,27 @@ export default function CreateEvent() {
               />
             </div>
 
-            {/* SUBMIT */}
-            <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition">
-              Create Event
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold disabled:opacity-60"
+            >
+              {loading ? "Creating..." : "Create Event"}
             </button>
           </form>
-
-          {message && (
-            <p className="mt-6 text-green-600 text-center">{message}</p>
-          )}
-          {error && <p className="mt-6 text-red-600 text-center">{error}</p>}
         </div>
       </div>
+
+      {/* CONFIRM MODAL */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Create Event"
+        message="Are you sure you want to create this event? It will be sent for admin approval."
+        confirmText="Create Event"
+        onConfirm={submitEvent}
+        onCancel={() => setConfirmOpen(false)}
+        loading={loading}
+      />
     </div>
   );
 }

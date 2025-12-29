@@ -11,25 +11,31 @@ from rest_framework.permissions import IsAdminUser
 from .models import Event, EventRegistration
 from .serializers import EventSerializer
 
+from rest_framework.parsers import MultiPartParser, FormParser
+
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # 🔥 THIS WAS MISSING
 
     def get_queryset(self):
         now = timezone.now()
-
         queryset = Event.objects.filter(
             approved=True,
-             date__gte=now      # ✅ ONLY FUTURE EVENTS
-        ).order_by("date")     # upcoming first
+            date__gte=now
+        ).order_by("date")
 
         place = self.request.query_params.get("location")
         if place:
             queryset = queryset.filter(place_name__icontains=place)
 
         return queryset
+
     def perform_create(self, serializer):
-        serializer.save(host=self.request.user, approved=False)
+        serializer.save(
+            host=self.request.user,
+            approved=False
+        )
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -173,6 +179,7 @@ def my_events(request):
         data.append({
             "event_id": reg.event.id,
             "title": reg.event.title,
+            "image": reg.event.image.url if reg.event.image else None, 
             "date": reg.event.date,
             "category": reg.event.category,
             "place_name": reg.event.place_name,
@@ -201,6 +208,7 @@ def hosted_events(request):
         data.append({
             "id": event.id,
             "title": event.title,
+            "image": event.image.url if event.image else None,
             "date": event.date,
             "location": event.location,
             "capacity": event.capacity,
@@ -309,6 +317,7 @@ def pending_events(request):
         data.append({
             "id": event.id,
             "title": event.title,
+            "image": event.image.url if event.image else None,
             "host": event.host.username,
             "place_name": event.place_name,
             "date": event.date,

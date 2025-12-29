@@ -16,7 +16,6 @@ export default function EventDetail() {
 
   const [paymentRef, setPaymentRef] = useState("");
 
-
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -39,13 +38,11 @@ export default function EventDetail() {
     try {
       const res = await api.post(`/events/events/${id}/join/`);
 
-      // Paid event → show payment section
       if (res.data.registration_id) {
         setRegistrationId(res.data.registration_id);
         setShowPayment(true);
         setMessage("💰 Registered. Please complete payment.");
       } else {
-        // Free event
         setMessage(res.data.message);
       }
     } catch (err) {
@@ -53,27 +50,26 @@ export default function EventDetail() {
     }
   };
 
-const handlePayment = async () => {
-  setError("");
-  setMessage("");
+  const handlePayment = async () => {
+    setError("");
+    setMessage("");
 
-  if (!paymentRef.trim()) {
-    setError("Please enter payment reference ID");
-    return;
-  }
+    if (!paymentRef.trim()) {
+      setError("Please enter payment reference ID");
+      return;
+    }
 
-  try {
-    await api.post(`/events/payments/confirm/${registrationId}/`, {
-      payment_reference: paymentRef,
-    });
+    try {
+      await api.post(`/events/payments/confirm/${registrationId}/`, {
+        payment_reference: paymentRef,
+      });
 
-    setMessage("✅ Payment submitted. Waiting for host approval.");
-    setShowPayment(false);
-  } catch {
-    setError("Payment submission failed");
-  }
-};
-
+      setMessage("✅ Payment submitted. Waiting for host approval.");
+      setShowPayment(false);
+    } catch {
+      setError("Payment submission failed");
+    }
+  };
 
   if (loading) return <p className="p-6">Loading...</p>;
   if (!event) return <p className="p-6 text-red-500">{error}</p>;
@@ -82,10 +78,33 @@ const handlePayment = async () => {
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-3xl mx-auto px-6">
         <div className="bg-white rounded-2xl shadow-sm border p-6">
-          {/* Title */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            {event.title}
-          </h1>
+          {/* 🎨 EVENT POSTER */}
+          {event.image ? (
+            <div className="relative w-full h-72 md:h-96 mb-6 rounded-2xl overflow-hidden shadow-lg">
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
+
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+              {/* Title on Poster */}
+              <div className="absolute bottom-4 left-4 right-4">
+                <h1 className="text-2xl md:text-3xl font-bold text-white">
+                  {event.title}
+                </h1>
+                <p className="text-sm text-gray-200 mt-1">
+                  📍 {event.place_name}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-72 bg-gray-200 rounded-2xl mb-6 flex items-center justify-center text-gray-500">
+              No event poster uploaded
+            </div>
+          )}
 
           {/* Description */}
           <p className="text-gray-700 mb-6 leading-relaxed">
@@ -94,10 +113,6 @@ const handlePayment = async () => {
 
           {/* Meta */}
           <div className="space-y-2 text-sm text-gray-600">
-            <p>
-              📍 <strong>{event.place_name}</strong>
-            </p>
-
             {event.location && (
               <a
                 href={event.location}
@@ -130,7 +145,7 @@ const handlePayment = async () => {
             </span>
           </div>
 
-          {/* 🎯 JOIN BUTTON */}
+          {/* JOIN BUTTON */}
           {!registrationId && (
             <button
               onClick={handleJoin}
@@ -140,7 +155,7 @@ const handlePayment = async () => {
             </button>
           )}
 
-          {/* 💳 PAYMENT SECTION (ONLY AFTER JOIN) */}
+          {/* PAYMENT SECTION */}
           {showPayment && event.category === "paid" && (
             <div className="mt-6 p-5 border rounded-xl bg-yellow-50">
               <p className="font-semibold text-gray-800 mb-1">
@@ -160,7 +175,6 @@ const handlePayment = async () => {
                 value={paymentRef}
                 onChange={(e) => setPaymentRef(e.target.value)}
                 className="w-full mt-4 border p-2 rounded"
-                required
               />
 
               <button

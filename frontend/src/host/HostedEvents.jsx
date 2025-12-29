@@ -16,7 +16,7 @@ export default function HostedEvents() {
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
+        {/* HEADER */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Hosted Events
@@ -30,55 +30,70 @@ export default function HostedEvents() {
           <p className="text-gray-500">You haven’t hosted any events yet.</p>
         )}
 
-        {/* Event Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* EVENT GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
             <div
               key={event.id}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+              className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition"
             >
-              {/* Top Status Bar */}
-              <div
-                className={`h-1 ${
-                  event.approved ? "bg-emerald-500" : "bg-amber-500"
-                }`}
-              />
+              {/* POSTER */}
+              <div className="relative h-44">
+                {event.image ? (
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    No Poster
+                  </div>
+                )}
 
-              <div className="p-5">
-                {/* Title */}
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                  {event.title}
-                </h2>
+                {/* Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-                {/* Date & Location */}
-                <p className="text-sm text-gray-600 mb-1">
-                  📍 {event.location}
-                </p>
-                <p className="text-sm text-gray-500">
+                {/* STATUS BADGE */}
+                <span
+                  className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
+                    event.approved
+                      ? "bg-emerald-500 text-white"
+                      : "bg-amber-500 text-white"
+                  }`}
+                >
+                  {event.approved ? "Approved" : "Pending"}
+                </span>
+
+                {/* TITLE */}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <h2 className="text-lg font-bold text-white leading-tight">
+                    {event.title}
+                  </h2>
+                </div>
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-5 space-y-2">
+                <p className="text-sm text-gray-600">
                   🗓 {new Date(event.date).toLocaleString()}
                 </p>
 
-                {/* Capacity */}
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600">
                   👥 Attendees:{" "}
                   <strong>
                     {event.attendees_count}/{event.capacity}
                   </strong>
                 </p>
 
-                {/* Approval Status */}
-                {!event.approved ? (
-                  <div className="mt-3 text-sm font-medium text-amber-600">
+                {!event.approved && (
+                  <p className="text-sm font-medium text-amber-600">
                     ⏳ Awaiting admin approval
-                  </div>
-                ) : (
-                  <div className="mt-3 text-sm font-medium text-emerald-600">
-                    ✅ Approved & Live
-                  </div>
+                  </p>
                 )}
 
-                {/* Actions */}
-                <div className="mt-6 grid grid-cols-1 gap-3">
+                {/* ACTIONS */}
+                <div className="mt-4 grid grid-cols-1 gap-3">
                   <button
                     onClick={() =>
                       navigate(`/hosted-events/${event.id}/attendees`)

@@ -2,16 +2,20 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { QRCodeCanvas } from "qrcode.react";
 
-
 export default function MyEvents() {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     const fetchMyEvents = async () => {
       try {
         const res = await api.get("/events/my-events/");
         setEvents(res.data);
+        setFilteredEvents(res.data);
       } catch (err) {
         console.error("Failed to load joined events", err);
       } finally {
@@ -22,6 +26,18 @@ export default function MyEvents() {
     fetchMyEvents();
   }, []);
 
+  /* 🔍 SEARCH FILTER */
+  useEffect(() => {
+    const query = search.toLowerCase();
+    setFilteredEvents(
+      events.filter(
+        (event) =>
+          event.title.toLowerCase().includes(query) ||
+          event.place_name.toLowerCase().includes(query)
+      )
+    );
+  }, [search, events]);
+
   if (loading) {
     return <p className="p-8 text-gray-600">Loading your events…</p>;
   }
@@ -29,124 +45,162 @@ export default function MyEvents() {
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Events</h1>
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">My Events</h1>
           <p className="text-gray-600">
-            Track your registrations, approvals, and event entry QR codes.
+            Search events and access your QR tickets.
           </p>
         </div>
 
-        {events.length === 0 && (
-          <p className="text-gray-500">You haven’t joined any events yet.</p>
+        {/* 🔍 SEARCH BAR */}
+        <input
+          type="text"
+          placeholder="Search by event name or location..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full md:w-1/2 mb-8 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+        />
+
+        {filteredEvents.length === 0 && (
+          <p className="text-gray-500">No matching events found.</p>
         )}
 
-        {/* Event Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {events.map((event) => (
-            <div
-              key={event.event_id}
-              className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
-            >
-              {/* Top Accent Bar */}
+        {/* EVENT GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => {
+            const isCompleted = new Date(event.date) < new Date();
+
+            return (
               <div
-                className={`h-1 ${
-                  event.category === "free" ? "bg-emerald-500" : "bg-indigo-500"
-                }`}
-              />
-              {new Date(event.date) < new Date() && (
-                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                  Completed
-                </span>
-              )}
-              <div className="p-5">
-                {/* Title */}
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                  {event.title}
-                </h2>
-
-                {/* Location */}
-                <p className="text-sm text-gray-600 mb-1">
-                  📍 {event.place_name}
-                </p>
-
-                {event.location && (
-                  <a
-                    href={event.location}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:underline"
-                  >
-                    View on Google Maps
-                  </a>
-                )}
-
-                {/* Date */}
-                <p className="text-sm text-gray-500 mt-2">
-                  🗓 {new Date(event.date).toLocaleString()}
-                </p>
-
-                {/* Badges */}
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      event.category === "free"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-indigo-100 text-indigo-700"
-                    }`}
-                  >
-                    {event.category === "free" ? "Free Event" : "Paid Event"}
-                  </span>
-
-                  {event.is_scanned ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
-                      ✅ Attended
-                    </span>
+                key={event.event_id}
+                onClick={() => event.is_approved && setSelectedEvent(event)}
+                className="cursor-pointer bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition"
+              >
+                {/* POSTER */}
+                <div className="relative h-44">
+                  {event.image ? (
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                      ⏳ Not Scanned
-                    </span>
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                      No Poster
+                    </div>
                   )}
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+                  {/* BADGES */}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        event.category === "free"
+                          ? "bg-emerald-500 text-white"
+                          : "bg-indigo-500 text-white"
+                      }`}
+                    >
+                      {event.category === "free" ? "Free" : "Paid"}
+                    </span>
+
+                    {isCompleted && (
+                      <span className="px-3 py-1 rounded-full text-xs bg-gray-700 text-white">
+                        Completed
+                      </span>
+                    )}
+                  </div>
+
+                  {/* TITLE */}
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h2 className="text-lg font-bold text-white leading-tight">
+                      {event.title}
+                    </h2>
+                    <p className="text-sm text-gray-200">
+                      📍 {event.place_name}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Approval Status */}
-                {!event.is_approved && (
-                  <div className="mt-4 text-sm text-amber-600 font-medium">
-                    ⏳ Waiting for host approval
-                  </div>
-                )}
+                {/* CONTENT */}
+                <div className="p-5">
+                  <p className="text-sm text-gray-600">
+                    🗓 {new Date(event.date).toLocaleString()}
+                  </p>
 
-                {/* QR Ticket */}
-                {event.is_approved && event.qr_token && (
-                  <div className="mt-6 bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">
-                      🎟 Entry Ticket
+                  {!event.is_approved && (
+                    <p className="mt-2 text-sm text-amber-600 font-medium">
+                      ⏳ Waiting for host approval
                     </p>
+                  )}
 
-                    {/* Centered QR */}
-                    <div className="flex justify-center mb-3">
-                      <QRCodeCanvas
-                        value={event.qr_token}
-                        size={180}
-                        bgColor="#ffffff"
-                        fgColor="#000000"
-                        level="H"
-                      />
-                    </div>
-
-                    <p className="text-[11px] text-gray-500 break-all">
-                      <strong>QR Token:</strong> {event.qr_token}
+                  {event.is_approved && (
+                    <p className="mt-2 text-sm text-indigo-600 font-semibold">
+                      Tap to view QR ticket →
                     </p>
-
-                    <p className="text-xs text-gray-500 mt-2">
-                      Show this QR at the event entrance
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* 🎟 QR MODAL */}
+        {selectedEvent && (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+            onClick={() => setSelectedEvent(null)}
+          >
+            <div
+              className="bg-white rounded-2xl p-6 w-[360px] text-center relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg"
+              >
+                ✕
+              </button>
+
+              {/* Title */}
+              <h2 className="text-lg font-bold text-gray-900 mb-1">
+                {selectedEvent.title}
+              </h2>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Entry Pass – Show this at the entrance
+              </p>
+
+              {/* 🎫 QR TICKET */}
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 bg-gray-50 mb-4">
+                <div className="flex justify-center mb-4">
+                  <QRCodeCanvas
+                    value={selectedEvent.qr_token}
+                    size={200}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="H"
+                  />
+                </div>
+
+                {/* Token */}
+                <div className="bg-white border rounded-lg px-3 py-2">
+                  <p className="text-[11px] text-gray-500 mb-1">QR Token</p>
+                  <p className="text-[11px] font-mono text-gray-800 break-all">
+                    {selectedEvent.qr_token}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Hint */}
+              <p className="text-xs text-gray-500">
+                Please keep this ticket safe until event entry
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

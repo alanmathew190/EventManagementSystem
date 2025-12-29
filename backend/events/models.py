@@ -4,6 +4,7 @@ import uuid
 import qrcode
 from django.core.files import File
 from io import BytesIO
+from cloudinary.models import CloudinaryField
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -13,6 +14,7 @@ class Event(models.Model):
 
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="hosted_events")
     title = models.CharField(max_length=150)
+    image = CloudinaryField('image', blank=True, null=True)
     description = models.TextField()
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
 

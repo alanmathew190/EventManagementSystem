@@ -14,6 +14,7 @@ export default function AdminDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+
   const approveEvent = async (eventId) => {
     try {
       await api.post(`/events/admin/events/${eventId}/approve/`);
@@ -23,46 +24,101 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) return <p className="p-6">Loading pending events...</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (loading) {
+    return <p className="p-6 text-gray-600">Loading pending events…</p>;
+  }
+
+  if (error) {
+    return <p className="p-6 text-red-600">{error}</p>;
+  }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Admin Panel – Pending Events</h1>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Panel</h1>
+          <p className="text-gray-600">
+            Review and approve pending events submitted by hosts.
+          </p>
+        </div>
 
-      {events.length === 0 && (
-        <p className="text-green-600">🎉 No pending events</p>
-      )}
+        {events.length === 0 && (
+          <p className="text-emerald-600 font-medium">🎉 No pending events</p>
+        )}
 
-      <div className="space-y-4">
-        {events.map((event) => (
-          <div key={event.id} className="border rounded-lg p-4 bg-white shadow">
-            <h2 className="text-xl font-semibold">{event.title}</h2>
-
-            <p className="text-sm text-gray-600">Host: {event.host}</p>
-
-            <p className="text-sm text-gray-600">📍 {event.place_name}</p>
-
-            <p className="text-sm text-gray-600">
-              🗓 {new Date(event.date).toLocaleString()}
-            </p>
-
-            <p className="text-sm text-gray-600">
-              {event.category === "paid"
-                ? `💰 Paid • ₹${event.price}`
-                : "🆓 Free Event"}
-            </p>
-
-            <p className="text-sm text-gray-600">Capacity: {event.capacity}</p>
-
-            <button
-              onClick={() => approveEvent(event.id)}
-              className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+        {/* EVENT GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <div
+              key={event.id}
+              className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition"
             >
-              Approve Event
-            </button>
-          </div>
-        ))}
+              {/* POSTER */}
+              <div className="relative h-44">
+                {event.image ? (
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    No Poster
+                  </div>
+                )}
+
+                {/* Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+                {/* CATEGORY */}
+                <span
+                  className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
+                    event.category === "paid"
+                      ? "bg-indigo-500 text-white"
+                      : "bg-emerald-500 text-white"
+                  }`}
+                >
+                  {event.category === "paid"
+                    ? `Paid • ₹${event.price}`
+                    : "Free Event"}
+                </span>
+
+                {/* TITLE */}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <h2 className="text-lg font-bold text-white leading-tight">
+                    {event.title}
+                  </h2>
+                </div>
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-5 space-y-1">
+                <p className="text-sm text-gray-600">
+                  👤 Host: <strong>{event.host}</strong>
+                </p>
+
+                <p className="text-sm text-gray-600">📍 {event.place_name}</p>
+
+                <p className="text-sm text-gray-600">
+                  🗓 {new Date(event.date).toLocaleString()}
+                </p>
+
+                <p className="text-sm text-gray-600">
+                  👥 Capacity: {event.capacity}
+                </p>
+
+                {/* ACTION */}
+                <button
+                  onClick={() => approveEvent(event.id)}
+                  className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-semibold transition"
+                >
+                  Approve Event
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

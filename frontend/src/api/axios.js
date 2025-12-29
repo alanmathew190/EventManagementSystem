@@ -2,18 +2,22 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Attach access token
 api.interceptors.request.use(
   (config) => {
     const tokens = JSON.parse(localStorage.getItem("authTokens"));
+
     if (tokens?.access) {
       config.headers.Authorization = `Bearer ${tokens.access}`;
     }
+
+    // 🚨 IMPORTANT:
+    // Let Axios decide Content-Type automatically
+    // (required for FormData / file uploads)
+    delete config.headers["Content-Type"];
+
     return config;
   },
   (error) => Promise.reject(error)

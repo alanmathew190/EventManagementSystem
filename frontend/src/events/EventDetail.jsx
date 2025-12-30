@@ -1,91 +1,76 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import ConfirmModal from "../components/ConfirmModal";
 import { successToast, errorToast } from "../utils/toast";
-import { useNavigate } from "react-router-dom";
-
 
 export default function EventDetail() {
   const { id } = useParams();
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [registrationId, setRegistrationId] = useState(null);
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentRef, setPaymentRef] = useState("");
-
   const [confirmJoin, setConfirmJoin] = useState(false);
-  const [confirmPay, setConfirmPay] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-useEffect(() => {
-  api
-    .get(`/events/events/${id}/`)
-    .then((res) => {
-      setEvent(res.data);
+  useEffect(() => {
+    api
+      .get(`/events/events/${id}/`)
+      .then((res) => setEvent(res.data))
+      .catch(() => errorToast("Failed to load event"))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-      // ✅ IMPORTANT PART
-      if (res.data.user_registration) {
-        setRegistrationId(res.data.user_registration.id);
-
-        if (res.data.user_registration.status === "pending_payment") {
-          setShowPayment(true);
-        }
-      }
-    })
-    .catch(() => errorToast("Failed to load event"))
-    .finally(() => setLoading(false));
-}, [id]);
-  
   const joinEvent = async () => {
     setActionLoading(true);
+
     try {
       const res = await api.post(`/events/events/${id}/join/`);
 
-      if (res.data.registration_id) {
-        // Paid event → show payment
-        setRegistrationId(res.data.registration_id);
-        setShowPayment(true);
-        successToast("Registered! Please complete payment 💰");
-      } else {
-        // Free event → join complete
-        successToast(res.data.message || "Joined event successfully 🎉");
-
-        // ✅ REDIRECT after short delay
-        setTimeout(() => {
-          navigate("/my-events");
-        }, 1200);
+      // FREE EVENT
+      if (!res.data.registration_id) {
+        successToast("Joined event successfully 🎉");
+        setTimeout(() => navigate("/my-events"), 1200);
+        return;
       }
+
+      // PAID EVENT → Razorpay
+      const registrationId = res.data.registration_id;
+
+      const orderRes = await api.post(
+        `/events/payments/create/${registrationId}/`
+      );
+
+      const options = {
+        key: orderRes.data.key,
+        amount: orderRes.data.amount,
+        currency: "INR",
+        name: "EventSphere",
+        description: orderRes.data.event,
+        order_id: orderRes.data.order_id,
+
+        handler: async function (response) {
+          await api.post("/events/payments/verify/", {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          successToast("Payment successful 🎉");
+          navigate("/my-events");
+        },
+
+        theme: { color: "#4f46e5" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
       errorToast(err.response?.data?.error || "Failed to join event");
     } finally {
       setActionLoading(false);
       setConfirmJoin(false);
-    }
-  };
-
-  const submitPayment = async () => {
-    if (!paymentRef.trim()) {
-      errorToast("Please enter payment reference ID");
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      await api.post(`/events/payments/confirm/${registrationId}/`, {
-        payment_reference: paymentRef,
-      });
-
-      successToast("Payment submitted ✔ Waiting for approval");
-      setShowPayment(false);
-    } catch {
-      errorToast("Payment submission failed");
-    } finally {
-      setActionLoading(false);
-      setConfirmPay(false);
     }
   };
 
@@ -96,10 +81,13 @@ useEffect(() => {
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-3xl mx-auto px-6">
         <div className="bg-white rounded-2xl shadow-sm border p-6">
-          {/* POSTER */}
           {event.image && (
             <div className="relative h-80 mb-6 rounded-2xl overflow-hidden">
-              <img src={event.image} className="w-full h-full object-cover" />
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-black/40" />
               <div className="absolute bottom-4 left-4 text-white">
                 <h1 className="text-3xl font-bold">{event.title}</h1>
@@ -107,91 +95,42 @@ useEffect(() => {
               </div>
             </div>
           )}
+
           <a
             href={event.location}
-            target="blank"
-            className="text-blue-700 mb-6 "
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-700 block mb-4"
           >
-            Click here to view On Google Maps
+            View on Google Maps
           </a>
-          <p className="text-gray-700 mb-6">{event.description}</p>
 
+          <p className="text-gray-700 mb-4">{event.description}</p>
           <p>🗓 {new Date(event.date).toLocaleString()}</p>
           <p>
             👥 {event.attendees_count} / {event.capacity}
           </p>
 
-          {!event?.user_registration && (
-            <button
-              onClick={() => setConfirmJoin(true)}
-              className="w-full mt-6 bg-indigo-600 text-white py-3 rounded-xl"
-            >
-              Join Event
-            </button>
-          )}
-
-          {showPayment && event.category === "paid" && (
-            <div className="mt-6 bg-yellow-50 p-5 rounded-xl">
-              <p className="font-semibold">Pay to UPI:</p>
-              <p className="font-mono text-blue-600">{event.upi_id}</p>
-
-              <input
-                required
-                value={paymentRef}
-                onChange={(e) => setPaymentRef(e.target.value)}
-                placeholder="Payment Reference ID"
-                className="w-full mt-4 border p-2 rounded"
-              />
-
-              <button
-                onClick={() => setConfirmPay(true)}
-                className="w-full mt-4 bg-emerald-500 text-white py-3 rounded-xl"
-              >
-                I Have Paid
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => setConfirmJoin(true)}
+            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold"
+          >
+            {event.category === "paid"
+              ? `Join & Pay ₹${event.price}`
+              : "Join Event"}
+          </button>
         </div>
       </div>
 
-      {/* CONFIRM JOIN */}
       <ConfirmModal
         open={confirmJoin}
         title="Join Event"
         message="Are you sure you want to join this event?"
-        confirmText="Join"
+        confirmText="Yes, Join"
         onConfirm={joinEvent}
         onCancel={() => setConfirmJoin(false)}
         loading={actionLoading}
       />
-
-      {/* CONFIRM PAYMENT */}
-      <ConfirmModal
-        open={confirmPay}
-        title="Submit Payment"
-        message="Confirm that you have completed the payment?"
-        confirmText="Submit Payment"
-        onConfirm={submitPayment}
-        onCancel={() => setConfirmPay(false)}
-        loading={actionLoading}
-      />
-      {event?.user_registration?.status === "pending_payment" && (
-        <p className="mt-4 text-yellow-600 font-medium">
-          ⏳ Payment pending — please complete payment
-        </p>
-      )}
-
-      {event?.user_registration?.status === "payment_submitted" && (
-        <p className="mt-4 text-blue-600 font-medium">
-          🕒 Payment submitted — waiting for approval
-        </p>
-      )}
-
-      {event?.user_registration?.status === "approved" && (
-        <p className="mt-4 text-emerald-600 font-medium">
-          ✅ You are confirmed for this event
-        </p>
-      )}
     </div>
   );
 }

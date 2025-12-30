@@ -1,14 +1,36 @@
 from rest_framework import serializers
-from .models import Event
+from .models import Event, EventRegistration
+
 
 class EventSerializer(serializers.ModelSerializer):
-    host_name = serializers.CharField(source="host.username", read_only=True)
-    attendees_count = serializers.IntegerField(
-        source="attendees.count", read_only=True
-    )
-    image = serializers.ImageField(required=False)
+    attendees_count = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = "__all__"   # ✅ MUST be a string, not a list
-        read_only_fields = ["host", "approved", "qr_code", "attendees"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "category",
+            "place_name",
+            "location",
+            "date",
+            "capacity",
+            "price",
+            "upi_id",
+            "approved",
+            "image",
+            "attendees_count",
+        ]
+
+    def get_attendees_count(self, obj):
+        return EventRegistration.objects.filter(event=obj).count()
+
+    def get_image(self, obj):
+        if obj.image:
+            try:
+                return obj.image.url
+            except:
+                return None
+        return None

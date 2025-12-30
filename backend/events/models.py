@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+from cloudinary.models import CloudinaryField
 
 
 class Event(models.Model):
@@ -15,7 +16,9 @@ class Event(models.Model):
 
     title = models.CharField(max_length=150)
     description = models.TextField()
-    image = models.ImageField(upload_to="event_images/", null=True, blank=True)
+
+    # ✅ Cloudinary event poster
+    image = CloudinaryField("event_images", blank=True, null=True)
 
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
 
@@ -26,7 +29,7 @@ class Event(models.Model):
     capacity = models.PositiveIntegerField(default=50)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    # Admin approval (event-level)
+    # Admin approval
     approved = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -42,7 +45,7 @@ class EventRegistration(models.Model):
     # Payment status
     is_paid = models.BooleanField(default=False)
 
-    # QR token (rendered in React, NOT stored as image)
+    # QR token (rendered in React)
     qr_token = models.UUIDField(default=uuid.uuid4, unique=True)
 
     # Attendance scan

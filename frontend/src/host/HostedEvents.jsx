@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import EmptyState from "../components/EmptyState";
 
 export default function HostedEvents() {
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
       .get("/events/hosted/")
       .then((res) => setEvents(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+     .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -26,8 +30,21 @@ export default function HostedEvents() {
           </p>
         </div>
 
-        {events.length === 0 && (
-          <p className="text-gray-500">You haven’t hosted any events yet.</p>
+        {loading && (
+          <p className="p-6 font-bold text-center text-gray-600">
+            {" "}
+            <Spinner size="lg" />
+            Loading events you hosted…
+          </p>
+        )}
+
+        {!loading && events.length === 0 && (
+          <EmptyState
+            title="No Hosted Events"
+            description="You haven’t hosted any events yet. Create one and start managing attendees."
+            actionLabel="Create Event"
+            onAction={() => navigate("/host/create")}
+          />
         )}
 
         {/* EVENT GRID */}

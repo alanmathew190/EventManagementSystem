@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import ConfirmModal from "../components/ConfirmModal";
 import { successToast, errorToast } from "../utils/toast";
+import Spinner from "../components/Spinner";
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -91,7 +92,10 @@ export default function EventDetail() {
   // --------------------------------------------------
   // UI STATES
   // --------------------------------------------------
-  if (loading) return <p className="p-6">Loading...</p>;
+  if (loading) {
+    return <p className="p-6 text-center text-gray-600"> <Spinner size="lg" />
+      Loading event details…</p>;
+  }
   if (!event) return null;
 const isFull = event.attendees_count >= event.capacity;
   return (

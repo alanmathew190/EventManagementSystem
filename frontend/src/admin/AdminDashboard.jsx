@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import EventDetailsModal from "../components/EventDetailsModal";
 import { successToast, errorToast } from "../utils/toast";
+import Spinner from "../components/Spinner";
+import EmptyState from "../components/EmptyState";
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
@@ -37,7 +39,8 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return <p className="p-6 text-gray-600">Loading pending events…</p>;
+    return <p className="p-6 font-bold text-center text-gray-600"> <Spinner size="lg" />
+      Loading pending events…</p>;
   }
 
   return (
@@ -46,7 +49,10 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
 
         {events.length === 0 && (
-          <p className="text-emerald-600">🎉 No pending events</p>
+          <EmptyState
+            title="No Pending Approvals"
+            description="All events are reviewed. Great job!"
+          />
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

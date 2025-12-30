@@ -191,7 +191,8 @@ def hosted_events(request):
             "image": e.image.url if e.image else None,  # ✅ FIX
             "date": e.date,
             "approved": e.approved,
-            "attendees": EventRegistration.objects.filter(event=e).count(),
+            "capacity":e.capacity,
+            "attendees_count": EventRegistration.objects.filter(event=e).count(),
         }
         for e in events
     ])

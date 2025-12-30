@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Event
+from .models import Event,EventRegistration
 
 
 class EventSerializer(serializers.ModelSerializer):
     host = serializers.ReadOnlyField(source="host.username")
-
+    attendees_count = serializers.SerializerMethodField()
     class Meta:
         model = Event
         fields = [
@@ -21,6 +21,7 @@ class EventSerializer(serializers.ModelSerializer):
             "price",
             "approved",
             "created_at",
+            "attendees_count"
         ]
         read_only_fields = ["host", "approved", "created_at"]
 
@@ -34,3 +35,8 @@ class EventSerializer(serializers.ModelSerializer):
             data["image"] = None
 
         return data
+    def get_attendees_count(self, obj):
+        return EventRegistration.objects.filter(
+            event=obj,
+            is_approved=True
+        ).count()

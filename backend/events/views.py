@@ -5,7 +5,6 @@ from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.conf import settings
-
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Event, EventRegistration, Payment
@@ -15,17 +14,17 @@ import razorpay
 from razorpay.errors import SignatureVerificationError
 
 
-# --------------------------------------------------
+# ----------------------------------
 # Razorpay Client
-# --------------------------------------------------
+# ----------------------------------
 client = razorpay.Client(
     auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
 )
 
 
-# --------------------------------------------------
-# EVENT CRUD
-# --------------------------------------------------
+# ----------------------------------
+# EVENTS CRUD
+# ----------------------------------
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
@@ -37,18 +36,13 @@ class EventViewSet(viewsets.ModelViewSet):
             date__gte=timezone.now()
         ).order_by("date")
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["request"] = self.request
-        return context
-
     def perform_create(self, serializer):
         serializer.save(host=self.request.user, approved=False)
 
 
-# --------------------------------------------------
+# ----------------------------------
 # JOIN EVENT
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def join_event(request, event_id):
@@ -81,14 +75,14 @@ def join_event(request, event_id):
     )
 
     return Response({
-        "message": "Proceed to payment",
-        "registration_id": registration.id
+        "registration_id": registration.id,
+        "message": "Proceed to payment"
     })
 
 
-# --------------------------------------------------
+# ----------------------------------
 # CREATE RAZORPAY ORDER
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_payment_order(request, registration_id):
@@ -116,13 +110,13 @@ def create_payment_order(request, registration_id):
         "order_id": order["id"],
         "amount": amount,
         "key": settings.RAZORPAY_KEY_ID,
-        "event": registration.event.title
+        "event_title": registration.event.title
     })
 
 
-# --------------------------------------------------
+# ----------------------------------
 # VERIFY PAYMENT (AUTO APPROVE)
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def verify_payment(request):
@@ -157,19 +151,16 @@ def verify_payment(request):
         return Response({"error": "Payment verification failed"}, status=400)
 
 
-# --------------------------------------------------
+# ----------------------------------
 # MY EVENTS
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_events(request):
-    regs = EventRegistration.objects.filter(
-        user=request.user
-    ).select_related("event")
+    regs = EventRegistration.objects.filter(user=request.user).select_related("event")
 
-    data = []
-    for r in regs:
-        data.append({
+    return Response([
+        {
             "event_id": r.event.id,
             "title": r.event.title,
             "image": r.event.image.url if r.event.image else None,
@@ -180,14 +171,14 @@ def my_events(request):
             "is_paid": r.is_paid,
             "is_approved": r.is_approved,
             "qr_token": str(r.qr_token),
-        })
+        }
+        for r in regs
+    ])
 
-    return Response(data)
 
-
-# --------------------------------------------------
+# ----------------------------------
 # HOSTED EVENTS
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def hosted_events(request):
@@ -197,35 +188,30 @@ def hosted_events(request):
         {
             "id": e.id,
             "title": e.title,
-            "image": e.image.url if e.image else None,
+            "image": e.image.url if e.image else None,  # ✅ FIX
             "date": e.date,
-            "location": e.location,
-            "capacity": e.capacity,
             "approved": e.approved,
-            "attendees_count": EventRegistration.objects.filter(event=e).count(),
+            "attendees": EventRegistration.objects.filter(event=e).count(),
         }
         for e in events
     ])
 
 
-# --------------------------------------------------
+
+# ----------------------------------
 # EVENT ATTENDEES (HOST)
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def event_attendees(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
+    event = get_object_or_404(Event, id=event_id, host=request.user)
 
-    if request.user != event.host:
-        return Response({"error": "Not authorized"}, status=403)
-
-    regs = EventRegistration.objects.filter(event=event).select_related("user")
+    regs = EventRegistration.objects.filter(event=event)
 
     return Response({
         "event": event.title,
         "attendees": [
             {
-                "id": r.id,
                 "username": r.user.username,
                 "is_paid": r.is_paid,
                 "is_approved": r.is_approved,
@@ -237,40 +223,40 @@ def event_attendees(request, event_id):
     })
 
 
-# --------------------------------------------------
-# QR SCAN (HOST)
-# --------------------------------------------------
+# ----------------------------------
+# SCAN QR (HOST)
+# ----------------------------------
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def scan_qr(request):
     qr_token = request.data.get("qr_token")
 
-    registration = get_object_or_404(
+    reg = get_object_or_404(
         EventRegistration,
         qr_token=qr_token,
         is_paid=True,
         is_approved=True
     )
 
-    if registration.event.host != request.user:
+    if reg.event.host != request.user:
         return Response({"error": "Not authorized"}, status=403)
 
-    if registration.is_scanned:
+    if reg.is_scanned:
         return Response({"error": "Already scanned"}, status=400)
 
-    registration.is_scanned = True
-    registration.scanned_at = timezone.now()
-    registration.save()
+    reg.is_scanned = True
+    reg.scanned_at = timezone.now()
+    reg.save()
 
     return Response({
         "message": "Attendance marked",
-        "user": registration.user.username
+        "user": reg.user.username
     })
 
 
-# --------------------------------------------------
+# ----------------------------------
 # ADMIN
-# --------------------------------------------------
+# ----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAdminUser])
 def pending_events(request):

@@ -1,19 +1,18 @@
 from rest_framework import serializers
-from .models import Event, EventRegistration
+from .models import Event
 
 
 class EventSerializer(serializers.ModelSerializer):
-    attendees_count = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-    user_registration = serializers.SerializerMethodField()
+    host = serializers.ReadOnlyField(source="host.username")
 
     class Meta:
         model = Event
         fields = [
             "id",
+            "host",
             "title",
             "description",
-            "image",
+            "image",       # keep real field for upload
             "category",
             "place_name",
             "location",
@@ -21,39 +20,17 @@ class EventSerializer(serializers.ModelSerializer):
             "capacity",
             "price",
             "approved",
-            "attendees_count",
-            "user_registration",
+            "created_at",
         ]
+        read_only_fields = ["host", "approved", "created_at"]
 
-    def get_attendees_count(self, obj):
-        return EventRegistration.objects.filter(event=obj).count()
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
 
-    def get_image(self, obj):
-        if not obj.image:
-         return None
-        return str(obj.image)
+        # ✅ Convert CloudinaryField → URL
+        if instance.image:
+            data["image"] = instance.image.url
+        else:
+            data["image"] = None
 
-
-    def get_user_registration(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-
-        reg = EventRegistration.objects.filter(
-            user=request.user,
-            event=obj
-        ).first()
-
-        if not reg:
-            return None
-
-        if not reg.is_paid:
-            status = "pending_payment"
-        elif reg.is_paid:
-            status = "approved"
-
-        return {
-            "id": reg.id,
-            "status": status,
-            "qr_token": str(reg.qr_token),
-        }
+        return data

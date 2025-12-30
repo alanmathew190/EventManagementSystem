@@ -35,37 +35,43 @@ export default function CreateEvent() {
     if (file) setPreview(URL.createObjectURL(file));
   };
 
-  const submitEvent = async () => {
-    setLoading(true);
+const submitEvent = async () => {
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-      Object.keys(form).forEach((key) => {
-        if (form.category === "free" && (key === "price" || key === "upi_id"))
-          return;
-        formData.append(key, form[key]);
-      });
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("category", form.category);
+    formData.append("place_name", form.place_name);
+    formData.append("location", form.location);
+    formData.append("date", form.date);
+    formData.append("capacity", form.capacity);
 
-      if (image) formData.append("image", image);
-
-      await api.post("/events/events/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      successToast("Event created successfully 🎉 Waiting for admin approval");
-      setConfirmOpen(false);
-
-      setTimeout(() => navigate("/events"), 1500);
-    } catch (err) {
-      errorToast(
-        err.response?.data?.error ||
-          "Failed to create event. Please check the details."
-      );
-    } finally {
-      setLoading(false);
+    if (form.category === "paid") {
+      formData.append("price", form.price);
+      formData.append("upi_id", form.upi_id);
     }
-  };
+
+    if (image) {
+      formData.append("image", image); // ✅ Cloudinary file
+    }
+
+    await api.post("/events/events/", formData);
+
+    successToast("Event submitted for admin approval 🎉");
+    navigate("/hosted-events");
+  } catch (err) {
+    console.error(err.response?.data);
+    errorToast("Failed to create event");
+  } finally {
+    setLoading(false);
+    setConfirmOpen(false);
+  }
+};
+
+
 
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-gray-100 min-h-screen py-12">

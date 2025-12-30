@@ -14,6 +14,9 @@ export default function EventDetail() {
   const [confirmJoin, setConfirmJoin] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // --------------------------------------------------
+  // FETCH EVENT
+  // --------------------------------------------------
   useEffect(() => {
     api
       .get(`/events/events/${id}/`)
@@ -22,26 +25,34 @@ export default function EventDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // --------------------------------------------------
+  // JOIN EVENT
+  // --------------------------------------------------
   const joinEvent = async () => {
     setActionLoading(true);
 
     try {
       const res = await api.post(`/events/events/${id}/join/`);
 
-      // FREE EVENT
-      if (!res.data.registration_id) {
+      // ✅ FREE EVENT
+      if (event.category === "free") {
         successToast("Joined event successfully 🎉");
         setTimeout(() => navigate("/my-events"), 1200);
         return;
       }
 
-      // PAID EVENT → Razorpay
+      // ✅ PAID EVENT → RAZORPAY
       const registrationId = res.data.registration_id;
+
+      if (!registrationId) {
+        errorToast("Registration failed");
+        return;
+      }
 
       const orderRes = await api.post(
         `/events/payments/create/${registrationId}/`
       );
-console.log(res.data)
+
       const options = {
         key: orderRes.data.key,
         amount: orderRes.data.amount,
@@ -51,14 +62,18 @@ console.log(res.data)
         order_id: orderRes.data.order_id,
 
         handler: async function (response) {
-          await api.post("/events/payments/verify/", {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
+          try {
+            await api.post("/events/payments/verify/", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
 
-          successToast("Payment successful 🎉");
-          navigate("/my-events");
+            successToast("Payment successful 🎉");
+            navigate("/my-events");
+          } catch {
+            errorToast("Payment verification failed");
+          }
         },
 
         theme: { color: "#4f46e5" },
@@ -66,14 +81,15 @@ console.log(res.data)
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (err) {
-      errorToast(err.response?.data?.error || "Failed to join event");
-    } finally {
-      setActionLoading(false);
-      setConfirmJoin(false);
-    }
+    }  catch (err) {
+  console.log("JOIN ERROR:", err.response?.data, err.response?.status);
+  errorToast(err.response?.data?.error || "Failed to join event");
+}
   };
 
+  // --------------------------------------------------
+  // UI STATES
+  // --------------------------------------------------
   if (loading) return <p className="p-6">Loading...</p>;
   if (!event) return null;
 
@@ -81,6 +97,7 @@ console.log(res.data)
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-3xl mx-auto px-6">
         <div className="bg-white rounded-2xl shadow-sm border p-6">
+          {/* EVENT POSTER */}
           {event.image && (
             <div className="relative h-80 mb-6 rounded-2xl overflow-hidden">
               <img
@@ -111,9 +128,11 @@ console.log(res.data)
             👥 {event.attendees_count} / {event.capacity}
           </p>
 
+          {/* JOIN BUTTON */}
           <button
             onClick={() => setConfirmJoin(true)}
-            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold"
+            disabled={actionLoading}
+            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white py-3 rounded-xl font-semibold"
           >
             {event.category === "paid"
               ? `Join & Pay ₹${event.price}`
@@ -122,6 +141,7 @@ console.log(res.data)
         </div>
       </div>
 
+      {/* CONFIRM MODAL */}
       <ConfirmModal
         open={confirmJoin}
         title="Join Event"

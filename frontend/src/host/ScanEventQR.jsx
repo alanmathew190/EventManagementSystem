@@ -1,52 +1,60 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import api from "../api/axios";
+import { successToast, errorToast } from "../utils/toast";
 
-export default function ScanEventQR() {
-  const { eventId } = useParams();
-  const [qrToken, setQrToken] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+export default function ScanQR() {
+  useEffect(() => {
+    const qrRegionId = "qr-reader";
+    const html5QrCode = new Html5Qrcode(qrRegionId);
 
-  const handleScan = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
+    html5QrCode
+      .start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        async (decodedText) => {
+          try {
+            await api.post("/events/events/scan-qr/", {
+              qr_token: decodedText,
+            });
 
-    try {
-      const res = await api.post("/events/events/scan-qr/", {
-        qr_token: qrToken,
+            successToast("Attendance marked successfully ✔");
+
+            // Stop scanner after success
+            html5QrCode.stop();
+          } catch (err) {
+            errorToast(
+              err.response?.data?.error || "Invalid or already scanned QR"
+            );
+          }
+        }
+      )
+      .catch(() => {
+        errorToast("Camera access denied or unavailable");
       });
 
-      setMessage(`✅ ${res.data.user} marked present`);
-    } catch (err) {
-      setError(err.response?.data?.error || "Invalid or already scanned QR");
-    }
-  };
+    return () => {
+      html5QrCode.stop().catch(() => {});
+    };
+  }, []);
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Scan QR for Event #{eventId}</h1>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-md mx-auto px-6">
+        <div className="bg-white rounded-2xl shadow-sm border p-6 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Scan Attendee QR
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Point the camera at the attendee QR code
+          </p>
 
-      <form onSubmit={handleScan} className="space-y-3">
-        <input
-          type="text"
-          placeholder="Paste QR token"
-          value={qrToken}
-          onChange={(e) => setQrToken(e.target.value)}
-          className="w-full border p-2"
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded"
-        >
-          Scan
-        </button>
-      </form>
-
-      {message && <p className="mt-4 text-green-600">{message}</p>}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+          <div id="qr-reader" className="w-full rounded-xl overflow-hidden" />
+        </div>
+      </div>
     </div>
   );
 }

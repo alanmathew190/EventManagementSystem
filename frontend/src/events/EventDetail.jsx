@@ -14,6 +14,7 @@ export default function EventDetail() {
   const [confirmJoin, setConfirmJoin] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+
   // --------------------------------------------------
   // FETCH EVENT
   // --------------------------------------------------
@@ -92,7 +93,7 @@ export default function EventDetail() {
   // --------------------------------------------------
   if (loading) return <p className="p-6">Loading...</p>;
   if (!event) return null;
-
+const isFull = event.attendees_count >= event.capacity;
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-3xl mx-auto px-6">
@@ -130,11 +131,19 @@ export default function EventDetail() {
 
           {/* JOIN BUTTON */}
           <button
+            disabled={isFull}
             onClick={() => setConfirmJoin(true)}
-            disabled={actionLoading}
-            className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white py-3 rounded-xl font-semibold"
+            className={`w-full mt-6 py-3 rounded-xl font-semibold transition
+    ${
+      isFull
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-indigo-600 hover:bg-indigo-700 text-white"
+    }
+  `}
           >
-            {event.category === "paid"
+            {isFull
+              ? "Event Full 🚫"
+              : event.category === "paid"
               ? `Join & Pay ₹${event.price}`
               : "Join Event"}
           </button>

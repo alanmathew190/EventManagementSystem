@@ -41,7 +41,7 @@ export default function EventDetail() {
       const orderRes = await api.post(
         `/events/payments/create/${registrationId}/`
       );
-
+console.log(res.data)
       const options = {
         key: orderRes.data.key,
         amount: orderRes.data.amount,

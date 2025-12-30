@@ -29,7 +29,10 @@ class EventSerializer(serializers.ModelSerializer):
         return EventRegistration.objects.filter(event=obj).count()
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        if not obj.image:
+         return None
+        return str(obj.image)
+
 
     def get_user_registration(self, obj):
         request = self.context.get("request")

@@ -37,6 +37,11 @@ class EventViewSet(viewsets.ModelViewSet):
             date__gte=timezone.now()
         ).order_by("date")
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
     def perform_create(self, serializer):
         serializer.save(host=self.request.user, approved=False)
 

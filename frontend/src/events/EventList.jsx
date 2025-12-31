@@ -99,8 +99,20 @@ export default function EventList() {
                 </div>
               )}
 
-              {/* BLACK GRADIENT OVERLAY */}
+              {/* DARK GRADIENT */}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/20" />
+
+              {/* ✨ GLASS SHINE */}
+              <div
+                className="pointer-events-none absolute inset-0
+                           -translate-x-full
+                           bg-gradient-to-tr
+                           from-white/0 via-white/25 to-white/0
+                           opacity-0
+                           group-hover:opacity-100
+                           group-hover:translate-x-full
+                           transition-all duration-700"
+              />
 
               {/* CONTENT */}
               <div className="absolute bottom-0 p-4 md:p-5 text-white">

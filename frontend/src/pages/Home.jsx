@@ -47,13 +47,14 @@ export default function Home() {
   return (
     <GlassLayout>
       {/* ================= HERO ================= */}
-      <section className="flex items-center justify-center min-h-screen px-4 sm:px-6 pt-24">
+      <section className="flex items-center justify-center min-h-screen px-4 sm:px-6 pt-14 sm:pt-24">
         <div
           className="relative max-w-6xl w-full
-                     min-h-[520px] md:min-h-[560px]
-                     rounded-3xl overflow-hidden
-                     shadow-[0_30px_80px_rgba(0,0,0,0.9)]"
+               min-h-[620px] sm:min-h-[520px] md:min-h-[560px]
+               rounded-3xl overflow-hidden
+               shadow-[0_30px_80px_rgba(0,0,0,0.9)]"
         >
+          {" "}
           {/* IMAGE CAROUSEL */}
           <div
             className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
@@ -64,24 +65,20 @@ export default function Home() {
                 key={i}
                 src={src}
                 alt="Event poster"
-                className="min-w-full h-full object-cover  rounded-3xl"
+                className="min-w-full h-full object-cover rounded-3xl"
               />
             ))}
           </div>
-
           {/* DARK + GLASS */}
           {/* 🎬 READABILITY GRADIENT (BOTTOM HEAVY) */}
           <div
             className="absolute inset-0 bg-gradient-to-t  rounded-3xl
                 from-black/70 via-black/30 to-transparent"
           />
-
           {/* 🧊 SOFT GLASS WASH (VERY LIGHT) */}
           <div className="absolute inset-0 bg-white/[0.06] backdrop-blur-md  rounded-3xl" />
-
           {/* ✨ GLASS EDGE */}
           <div className="absolute inset-0 border border-white/10 pointer-events-none  rounded-3xl" />
-
           {/* CONTENT */}
           <div className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 py-16">
             <div className="mb-6">

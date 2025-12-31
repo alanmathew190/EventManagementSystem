@@ -52,7 +52,7 @@ export default function Home() {
           className="relative max-w-6xl w-full
                min-h-[620px] sm:min-h-[520px] md:min-h-[560px]
                rounded-3xl overflow-hidden
-               shadow-[0_30px_80px_rgba(0,0,0,0.9)]"
+               shadow-[0_30px_80px_rgba(0,0,0,0.9)] pt-10"
         >
           {" "}
           {/* IMAGE CAROUSEL */}

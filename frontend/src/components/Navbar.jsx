@@ -11,42 +11,56 @@ export default function Navbar() {
 
   if (!authTokens) return null;
 
+  // ✅ Logout confirmation restored
   const handleLogout = () => {
-    const confirmed = window.confirm("Are you sure you want to logout?");
-    if (confirmed) {
-      logout();
-      navigate("/login");
-    }
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    logout();
+    navigate("/login");
   };
 
   const linkClass = (path) =>
-    `transition ${
+    `relative font-medium transition ${
       location.pathname === path
-        ? "text-indigo-600 font-semibold"
-        : "text-gray-600 hover:text-indigo-600"
+        ? "text-indigo-400"
+        : "text-white/70 hover:text-indigo-400"
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav
+      className="fixed top-0 z-50 w-full overflow-x-hidden
+                    bg-white/10 backdrop-blur-2xl
+                    border-b border-white/20
+                    shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
+    >
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* 🔵 Brand */}
+        {/* 🔵 BRAND */}
         <Link
           to="/events"
-          className="text-2xl font-extrabold tracking-tight text-indigo-600"
+          className="flex items-center gap-2 text-xl font-extrabold text-indigo-400"
         >
+          <span
+            className="w-8 h-8 rounded-lg bg-indigo-500 text-white
+                           flex items-center justify-center text-sm shadow-lg"
+          >
+            ES
+          </span>
           EventSphere
         </Link>
 
-        {/* 🍔 Mobile Menu Button */}
+        {/* 🍔 MOBILE TOGGLE */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+          className="md:hidden p-2 rounded-lg
+                     hover:bg-white/10 active:scale-95
+                     transition text-white"
         >
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
-        {/* 🖥 Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+        {/* 🖥 DESKTOP MENU */}
+        <div className="hidden md:flex items-center gap-6 text-sm">
           <Link to="/events" className={linkClass("/events")}>
             Events
           </Link>
@@ -63,76 +77,84 @@ export default function Navbar() {
           {isAdmin && (
             <Link
               to="/admin"
-              className="text-indigo-600 font-semibold hover:underline"
+              className="text-indigo-400 font-semibold hover:underline"
             >
               Admin
             </Link>
           )}
 
-          {/* 👤 User */}
-          <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
-            <span className="text-gray-700 font-semibold">{username}</span>
+          {/* 👤 USER */}
+          <div
+            className="flex items-center gap-2
+                          bg-white/15 backdrop-blur-xl
+                          px-3 py-1.5 rounded-full
+                          border border-white/25"
+          >
+            <span className="text-white font-semibold">{username}</span>
           </div>
 
           <button
             onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
+            className="bg-red-500/80 hover:bg-red-600
+                       active:scale-95 text-white
+                       px-4 py-2 rounded-lg
+                       transition shadow"
           >
             Logout
           </button>
         </div>
       </div>
 
-      {/* 📱 Mobile Menu */}
+      {/* 📱 MOBILE MENU */}
       {menuOpen && (
-        <div className="md:hidden border-t bg-white px-4 py-4 space-y-3 text-sm">
-          <Link
-            to="/events"
-            onClick={() => setMenuOpen(false)}
-            className="block font-medium text-gray-700 hover:text-indigo-600"
-          >
-            Events
-          </Link>
-          <Link
-            to="/my-events"
-            onClick={() => setMenuOpen(false)}
-            className="block font-medium text-gray-700 hover:text-indigo-600"
-          >
-            My Events
-          </Link>
-          <Link
-            to="/host/create"
-            onClick={() => setMenuOpen(false)}
-            className="block font-medium text-gray-700 hover:text-indigo-600"
-          >
-            Host Event
-          </Link>
-          <Link
-            to="/hosted-events"
-            onClick={() => setMenuOpen(false)}
-            className="block font-medium text-gray-700 hover:text-indigo-600"
-          >
-            Hosted Events
-          </Link>
+        <div
+          className="md:hidden w-full
+                        bg-black/70 backdrop-blur-2xl
+                        border-t border-white/20
+                        px-4 py-5 space-y-4 text-sm"
+        >
+          {[
+            { path: "/events", label: "Events" },
+            { path: "/my-events", label: "My Events" },
+            { path: "/host/create", label: "Host Event" },
+            { path: "/hosted-events", label: "Hosted Events" },
+          ].map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setMenuOpen(false)}
+              className={`block font-medium ${
+                location.pathname === item.path
+                  ? "text-indigo-400"
+                  : "text-white/80 hover:text-indigo-400"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
 
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setMenuOpen(false)}
-              className="block font-semibold text-indigo-600"
+              className="block font-semibold text-indigo-400"
             >
               Admin Panel
             </Link>
           )}
 
-          <div className="pt-3 border-t flex items-center justify-between">
-            <span className="text-gray-600">
+          <div
+            className="pt-4 border-t border-white/20
+                          flex items-center justify-between"
+          >
+            <span className="text-white/70">
               Logged in as <strong>{username}</strong>
             </span>
-
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+              className="bg-red-500/80 hover:bg-red-600
+                         active:scale-95 text-white
+                         px-4 py-2 rounded-lg transition"
             >
               Logout
             </button>

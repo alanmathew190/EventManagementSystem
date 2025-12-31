@@ -11,14 +11,10 @@ export default function EventDetail() {
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [confirmJoin, setConfirmJoin] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-
-  // --------------------------------------------------
   // FETCH EVENT
-  // --------------------------------------------------
   useEffect(() => {
     api
       .get(`/events/events/${id}/`)
@@ -27,25 +23,19 @@ export default function EventDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // --------------------------------------------------
   // JOIN EVENT
-  // --------------------------------------------------
   const joinEvent = async () => {
     setActionLoading(true);
-
     try {
       const res = await api.post(`/events/events/${id}/join/`);
 
-      // ✅ FREE EVENT
       if (event.category === "free") {
         successToast("Joined event successfully 🎉");
         setTimeout(() => navigate("/my-events"), 1200);
         return;
       }
 
-      // ✅ PAID EVENT → RAZORPAY
       const registrationId = res.data.registration_id;
-
       if (!registrationId) {
         errorToast("Registration failed");
         return;
@@ -62,7 +52,6 @@ export default function EventDetail() {
         name: "EventSphere",
         description: orderRes.data.event,
         order_id: orderRes.data.order_id,
-
         handler: async function (response) {
           try {
             await api.post("/events/payments/verify/", {
@@ -70,87 +59,124 @@ export default function EventDetail() {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
             });
-
             successToast("Payment successful 🎉");
             navigate("/my-events");
           } catch {
             errorToast("Payment verification failed");
           }
         },
-
         theme: { color: "#4f46e5" },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    }  catch (err) {
-  console.log("JOIN ERROR:", err.response?.data, err.response?.status);
-  errorToast(err.response?.data?.error || "Failed to join event");
-}
+    } catch (err) {
+      errorToast(err.response?.data?.error || "Failed to join event");
+    } finally {
+      setActionLoading(false);
+      setConfirmJoin(false);
+    }
   };
 
-  // --------------------------------------------------
-  // UI STATES
-  // --------------------------------------------------
   if (loading) {
-    return <p className="p-6 text-center text-gray-600"> <Spinner size="lg" />
-      Loading event details…</p>;
+    return <Spinner size="lg" text="Loading event details…" />;
   }
+
   if (!event) return null;
-const isFull = event.attendees_count >= event.capacity;
+
+  const isFull = event.attendees_count >= event.capacity;
+
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          {/* EVENT POSTER */}
+    <div
+      className="relative min-h-screen overflow-hidden
+                    bg-gradient-to-br from-indigo-900 via-purple-900 to-black"
+    >
+      {/* BACKGROUND GLOW */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-40 -left-40 w-[500px] h-[500px]
+                        bg-indigo-500/40 rounded-full blur-[160px]"
+        />
+        <div
+          className="absolute top-1/2 -right-40 w-[500px] h-[500px]
+                        bg-fuchsia-500/40 rounded-full blur-[160px]"
+        />
+      </div>
+
+      {/* NAVBAR SHIELD */}
+      <div
+        className="absolute top-0 left-0 w-full h-36
+                      bg-gradient-to-b from-black via-black/90 to-transparent
+                      pointer-events-none"
+      />
+
+      <div className="relative max-w-4xl mx-auto px-6 pt-28 pb-16">
+        <div
+          className="rounded-3xl overflow-hidden
+                     bg-white/15 backdrop-blur-2xl
+                     border border-white/25
+                     shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+        >
+          {/* IMAGE */}
           {event.image && (
-            <div className="relative h-80 mb-6 rounded-2xl overflow-hidden">
+            <div className="relative h-[420px] overflow-hidden">
               <img
                 src={event.image}
                 alt={event.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute bottom-4 left-4 text-white">
-                <h1 className="text-3xl font-bold">{event.title}</h1>
-                <p className="text-sm">📍 {event.place_name}</p>
+              <div
+                className="absolute inset-0
+                              bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+              />
+
+              <div className="absolute bottom-6 left-6 right-6 text-white">
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-1">
+                  {event.title}
+                </h1>
+                <p className="text-white/80 text-sm">📍 {event.place_name}</p>
               </div>
             </div>
           )}
 
-          <a
-            href={event.location}
-            target="_blank"
-            rel="noreferrer"
-            className="text-blue-700 block mb-4"
-          >
-            View on Google Maps
-          </a>
+          {/* CONTENT */}
+          <div className="p-8 text-white space-y-4">
+            <a
+              href={event.location}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block text-indigo-300 hover:underline"
+            >
+              View on Google Maps →
+            </a>
 
-          <p className="text-gray-700 mb-4">{event.description}</p>
-          <p>🗓 {new Date(event.date).toLocaleString()}</p>
-          <p>
-            👥 {event.attendees_count} / {event.capacity}
-          </p>
+            <p className="text-white/80 leading-relaxed">{event.description}</p>
 
-          {/* JOIN BUTTON */}
-          <button
-            disabled={isFull}
-            onClick={() => setConfirmJoin(true)}
-            className={`w-full mt-6 py-3 rounded-xl font-semibold transition
-    ${
-      isFull
-        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-        : "bg-indigo-600 hover:bg-indigo-700 text-white"
-    }
-  `}
-          >
-            {isFull
-              ? "Event Full 🚫"
-              : event.category === "paid"
-              ? `Join & Pay ₹${event.price}`
-              : "Join Event"}
-          </button>
+            <div className="text-sm text-white/70 space-y-1">
+              <p>🗓 {new Date(event.date).toLocaleString()}</p>
+              <p>
+                👥 {event.attendees_count} / {event.capacity}
+              </p>
+            </div>
+
+            {/* JOIN BUTTON */}
+            <button
+              disabled={isFull}
+              onClick={() => setConfirmJoin(true)}
+              className={`w-full mt-6 py-3 rounded-xl font-semibold transition
+                ${
+                  isFull
+                    ? "bg-white/20 text-white/50 cursor-not-allowed"
+                    : "bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white"
+                }`}
+            >
+              {isFull
+                ? "Event Full 🚫"
+                : event.category === "paid"
+                ? `Join & Pay ₹${event.price}`
+                : "Join Event"}
+            </button>
+          </div>
         </div>
       </div>
 

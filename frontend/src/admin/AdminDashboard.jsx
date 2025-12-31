@@ -25,9 +25,7 @@ export default function AdminDashboard() {
     setActionLoading(true);
     try {
       await api.post(`/events/admin/events/${selectedEvent.id}/approve/`);
-
       setEvents((prev) => prev.filter((e) => e.id !== selectedEvent.id));
-
       successToast("Event approved successfully 🎉");
       setSelectedEvent(null);
       setConfirmApprove(false);
@@ -39,14 +37,43 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return <p className="p-6 font-bold text-center text-gray-600"> <Spinner size="lg" />
-      Loading pending events…</p>;
+    return <Spinner size="lg" text="Loading pending events…" />;
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-6xl mx-auto px-6">
-        <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
+    <div
+      className="relative min-h-screen overflow-hidden
+                    bg-gradient-to-br from-indigo-900 via-purple-900 to-black"
+    >
+      {/* 🌈 BACKGROUND GLOW */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-40 -left-40 w-[500px] h-[500px]
+                        bg-indigo-500/40 rounded-full blur-[160px]"
+        />
+        <div
+          className="absolute top-1/2 -right-40 w-[500px] h-[500px]
+                        bg-fuchsia-500/40 rounded-full blur-[160px]"
+        />
+      </div>
+
+      {/* 🛡 NAVBAR SHIELD */}
+      <div
+        className="absolute top-0 left-0 w-full h-36
+                      bg-gradient-to-b from-black via-black/90 to-transparent
+                      pointer-events-none"
+      />
+
+      <div className="relative max-w-7xl mx-auto px-6 pt-28 pb-16">
+        {/* HEADER */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-extrabold text-white mb-3">
+            Admin Panel
+          </h1>
+          <p className="text-white/70 max-w-2xl">
+            Review and approve events submitted by hosts.
+          </p>
+        </div>
 
         {events.length === 0 && (
           <EmptyState
@@ -55,43 +82,58 @@ export default function AdminDashboard() {
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-2xl border shadow-sm"
-            >
-              <div className="p-5 space-y-2">
-                <h2 className="text-lg font-bold">{event.title}</h2>
-                <p className="text-sm text-gray-600">📍 {event.place_name}</p>
+        {/* EVENT GRID */}
+        {events.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {events.map((event) => (
+              <div
+                key={event.id}
+                className="rounded-3xl overflow-hidden
+                           bg-white/15 backdrop-blur-2xl
+                           border border-white/25
+                           shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                           transition-all duration-500
+                           hover:bg-white/25 hover:-translate-y-2"
+              >
+                <div className="p-6 text-white space-y-2">
+                  <h2 className="text-lg font-bold leading-snug">
+                    {event.title}
+                  </h2>
+                  <p className="text-sm text-white/70">📍 {event.place_name}</p>
 
-                <div className="flex gap-2 mt-4">
-                  {/* VIEW */}
-                  <button
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setConfirmApprove(false);
-                    }}
-                    className="flex-1 border border-indigo-500 text-indigo-600 py-2 rounded-xl"
-                  >
-                    View Details
-                  </button>
+                  {/* ACTIONS */}
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setConfirmApprove(false);
+                      }}
+                      className="flex-1 bg-white/10 hover:bg-white/20
+                                 active:scale-95 text-white
+                                 py-2 rounded-xl text-sm font-semibold
+                                 transition border border-white/25"
+                    >
+                      View Details
+                    </button>
 
-                  {/* APPROVE */}
-                  <button
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setConfirmApprove(true);
-                    }}
-                    className="flex-1 bg-emerald-600 text-white py-2 rounded-xl"
-                  >
-                    Approve
-                  </button>
+                    <button
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setConfirmApprove(true);
+                      }}
+                      className="flex-1 bg-emerald-400/80 hover:bg-emerald-500
+                                 active:scale-95 text-white
+                                 py-2 rounded-xl text-sm font-semibold
+                                 transition shadow"
+                    >
+                      Approve
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* MODAL */}
         <EventDetailsModal

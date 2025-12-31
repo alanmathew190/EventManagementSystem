@@ -21,7 +21,6 @@ export default function CreateEvent() {
 
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -35,52 +34,54 @@ export default function CreateEvent() {
     if (file) setPreview(URL.createObjectURL(file));
   };
 
-const submitEvent = async () => {
-  setLoading(true);
+  const submitEvent = async () => {
+    setLoading(true);
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("place_name", form.place_name);
-    formData.append("location", form.location);
-    formData.append("date", form.date);
-    formData.append("capacity", form.capacity);
+      Object.entries(form).forEach(([key, value]) => {
+        if (value) formData.append(key, value);
+      });
 
-    if (form.category === "paid") {
-      formData.append("price", form.price);
-      formData.append("upi_id", form.upi_id);
+      if (image) formData.append("image", image);
+
+      await api.post("/events/events/", formData);
+
+      successToast("Event submitted for admin approval 🎉");
+      navigate("/hosted-events");
+    } catch {
+      errorToast("Failed to create event");
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
     }
-
-    if (image) {
-      formData.append("image", image); // ✅ Cloudinary file
-    }
-
-    await api.post("/events/events/", formData);
-
-    successToast("Event submitted for admin approval 🎉");
-    navigate("/hosted-events");
-  } catch (err) {
-    console.error(err.response?.data);
-    errorToast("Failed to create event");
-  } finally {
-    setLoading(false);
-    setConfirmOpen(false);
-  }
-};
-
-
+  };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-gray-100 min-h-screen py-12">
-      <div className="max-w-2xl mx-auto px-6">
-        <div className="bg-white rounded-3xl shadow-lg border p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-black">
+      {/* 🌈 BACKGROUND GLOW */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-40 -left-40 w-[500px] h-[500px] bg-indigo-500/40 rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-fuchsia-500/40 rounded-full blur-[160px]" />
+      </div>
+
+      {/* 🛡 TOP DARK SHIELD */}
+      <div className="absolute top-0 left-0 w-full h-36 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none" />
+
+      <div className="relative max-w-2xl mx-auto pt-25 px-6 py-14">
+        {/* GLASS FORM CARD */}
+        <div
+          className="bg-white/15 backdrop-blur-2xl
+                     border border-white/25
+                     rounded-3xl
+                     shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                     p-8"
+        >
+          <h1 className="text-3xl font-extrabold text-white mb-2">
             Host an Event
           </h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-white/70 mb-8">
             Upload your event poster and share the details with attendees.
           </p>
 
@@ -93,11 +94,11 @@ const submitEvent = async () => {
           >
             {/* POSTER */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 Event Poster
               </label>
 
-              <div className="border-2 border-dashed rounded-xl p-4 text-center hover:border-indigo-500 transition">
+              <div className="border-2 border-dashed border-white/30 rounded-xl p-4 text-center hover:border-indigo-400 transition">
                 <input
                   type="file"
                   accept="image/*"
@@ -113,7 +114,7 @@ const submitEvent = async () => {
                       className="h-48 w-full object-cover rounded-lg"
                     />
                   ) : (
-                    <p className="text-gray-500">
+                    <p className="text-white/60">
                       Click to upload event poster
                     </p>
                   )}
@@ -121,7 +122,7 @@ const submitEvent = async () => {
               </div>
             </div>
 
-            {/* TITLE */}
+            {/* INPUTS */}
             <input
               type="text"
               name="title"
@@ -129,10 +130,12 @@ const submitEvent = async () => {
               value={form.title}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full rounded-xl bg-white/20 backdrop-blur-xl
+                         border border-white/30 px-4 py-3
+                         text-white placeholder-white/50
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
             />
 
-            {/* DESCRIPTION */}
             <textarea
               name="description"
               rows="4"
@@ -140,21 +143,24 @@ const submitEvent = async () => {
               value={form.description}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full rounded-xl bg-white/20 backdrop-blur-xl
+                         border border-white/30 px-4 py-3
+                         text-white placeholder-white/50
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
             />
 
-            {/* CATEGORY */}
             <select
               name="category"
               value={form.category}
               onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full rounded-xl bg-white/20 backdrop-blur-xl
+                         border border-white/30 px-4 py-3
+                         text-white focus:ring-2 focus:ring-indigo-400 outline-none"
             >
               <option value="free">Free Event</option>
               <option value="paid">Paid Event</option>
             </select>
 
-            {/* PAID */}
             {form.category === "paid" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
@@ -164,7 +170,9 @@ const submitEvent = async () => {
                   value={form.price}
                   onChange={handleChange}
                   required
-                  className="border rounded-lg px-4 py-2"
+                  className="rounded-xl bg-white/20 backdrop-blur-xl
+                             border border-white/30 px-4 py-3
+                             text-white placeholder-white/50 outline-none"
                 />
                 <input
                   type="text"
@@ -173,12 +181,13 @@ const submitEvent = async () => {
                   value={form.upi_id}
                   onChange={handleChange}
                   required
-                  className="border rounded-lg px-4 py-2"
+                  className="rounded-xl bg-white/20 backdrop-blur-xl
+                             border border-white/30 px-4 py-3
+                             text-white placeholder-white/50 outline-none"
                 />
               </div>
             )}
 
-            {/* LOCATION */}
             <input
               type="text"
               name="place_name"
@@ -186,7 +195,9 @@ const submitEvent = async () => {
               value={form.place_name}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full rounded-xl bg-white/20 backdrop-blur-xl
+                         border border-white/30 px-4 py-3
+                         text-white placeholder-white/50 outline-none"
             />
 
             <input
@@ -196,10 +207,11 @@ const submitEvent = async () => {
               value={form.location}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-2"
+              className="w-full rounded-xl bg-white/20 backdrop-blur-xl
+                         border border-white/30 px-4 py-3
+                         text-white placeholder-white/50 outline-none"
             />
 
-            {/* DATE & CAPACITY */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="datetime-local"
@@ -207,21 +219,27 @@ const submitEvent = async () => {
                 value={form.date}
                 onChange={handleChange}
                 required
-                className="border rounded-lg px-4 py-2"
+                className="rounded-xl bg-white/20 backdrop-blur-xl
+                           border border-white/30 px-4 py-3
+                           text-white outline-none"
               />
               <input
                 type="number"
                 name="capacity"
                 value={form.capacity}
                 onChange={handleChange}
-                className="border rounded-lg px-4 py-2"
+                className="rounded-xl bg-white/20 backdrop-blur-xl
+                           border border-white/30 px-4 py-3
+                           text-white outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold disabled:opacity-60"
+              className="w-full bg-indigo-500 hover:bg-indigo-600
+                         text-white py-3 rounded-xl font-semibold
+                         transition active:scale-95 disabled:opacity-60"
             >
               {loading ? "Creating..." : "Create Event"}
             </button>

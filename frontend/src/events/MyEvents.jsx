@@ -26,7 +26,6 @@ export default function MyEvents() {
         setLoading(false);
       }
     };
-
     fetchMyEvents();
   }, []);
 
@@ -41,28 +40,40 @@ export default function MyEvents() {
     );
   }, [search, events]);
 
-  if (loading) {
-    return <Spinner size="lg" />;
-  }
+  if (loading) return <Spinner size="lg" text="Loading your events…" />;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-6xl mx-auto px-6">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-black">
+      {/* 🌈 BACKGROUND GLOW */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-40 -left-40 w-[500px] h-[500px] bg-indigo-500/40 rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-fuchsia-500/40 rounded-full blur-[160px]" />
+      </div>
+
+      {/* 🛡 TOP DARK SHIELD */}
+      <div className="absolute top-0 left-0 w-full h-36 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-6 py-14">
         {/* HEADER */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">My Events</h1>
-          <p className="text-gray-600">
+        <div className="mb-10 pt-10">
+          <h1 className="text-4xl font-extrabold text-white mb-2">My Events</h1>
+          <p className="text-white/70">
             Search events and access your QR tickets.
           </p>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH */}
         <input
           type="text"
           placeholder="Search by event name or location..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-1/2 mb-8 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+          className="w-full md:w-1/2 mb-10 rounded-2xl
+                     bg-white/20 backdrop-blur-xl
+                     border border-white/30 px-5 py-3
+                     text-white placeholder-white/60
+                     focus:ring-2 focus:ring-white/50
+                     outline-none shadow-lg"
         />
 
         {/* EMPTY STATES */}
@@ -84,7 +95,7 @@ export default function MyEvents() {
 
         {/* EVENT GRID */}
         {filteredEvents.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredEvents.map((event) => {
               const isCompleted = new Date(event.date) < new Date();
 
@@ -92,38 +103,44 @@ export default function MyEvents() {
                 <div
                   key={event.event_id}
                   onClick={() => event.is_approved && setSelectedEvent(event)}
-                  className="cursor-pointer bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition"
+                  className="cursor-pointer group rounded-3xl overflow-hidden
+                             bg-white/15 backdrop-blur-2xl
+                             border border-white/25
+                             shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                             transition-all duration-500
+                             hover:bg-white/25 hover:-translate-y-3"
                 >
-                  {/* POSTER */}
-                  <div className="relative h-44">
+                  {/* IMAGE */}
+                  <div className="relative h-48 overflow-hidden">
                     {event.image ? (
                       <img
                         src={event.image}
                         alt={event.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                      <div className="w-full h-full flex items-center justify-center text-white/60">
                         No Poster
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
                     {/* BADGES */}
                     <div className="absolute top-3 left-3 flex gap-2">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          event.category === "free"
-                            ? "bg-emerald-500 text-white"
-                            : "bg-indigo-500 text-white"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold
+                          ${
+                            event.category === "free"
+                              ? "bg-emerald-400/30 text-emerald-200 border border-emerald-300/30"
+                              : "bg-indigo-400/30 text-indigo-200 border border-indigo-300/30"
+                          }`}
                       >
                         {event.category === "free" ? "Free" : "Paid"}
                       </span>
 
                       {isCompleted && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-700 text-white">
+                        <span className="px-3 py-1 rounded-full text-xs bg-white/20 text-white">
                           Completed
                         </span>
                       )}
@@ -131,29 +148,29 @@ export default function MyEvents() {
 
                     {/* TITLE */}
                     <div className="absolute bottom-3 left-3 right-3">
-                      <h2 className="text-lg font-bold text-white leading-tight">
+                      <h2 className="text-lg font-bold text-white">
                         {event.title}
                       </h2>
-                      <p className="text-sm text-gray-200">
+                      <p className="text-sm text-white/70">
                         📍 {event.place_name}
                       </p>
                     </div>
                   </div>
 
                   {/* CONTENT */}
-                  <div className="p-5">
-                    <p className="text-sm text-gray-600">
+                  <div className="p-6 text-white">
+                    <p className="text-sm text-white/70">
                       🗓 {new Date(event.date).toLocaleString()}
                     </p>
 
                     {!event.is_approved && (
-                      <p className="mt-2 text-sm text-amber-600 font-medium">
+                      <p className="mt-2 text-sm text-amber-300 font-medium">
                         ⏳ Waiting for host approval
                       </p>
                     )}
 
                     {event.is_approved && (
-                      <p className="mt-2 text-sm text-indigo-600 font-semibold">
+                      <p className="mt-2 text-sm text-indigo-300 font-semibold">
                         Tap to view QR ticket →
                       </p>
                     )}
@@ -163,58 +180,60 @@ export default function MyEvents() {
             })}
           </div>
         )}
+      </div>
 
-        {/* QR MODAL */}
-        {selectedEvent && (
+      {/* 🔳 QR MODAL */}
+      {selectedEvent && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm
+                     flex items-center justify-center z-50"
+          onClick={() => setSelectedEvent(null)}
+        >
           <div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-            onClick={() => setSelectedEvent(null)}
+            className="bg-white/15 backdrop-blur-2xl
+                       border border-white/25
+                       rounded-3xl p-6 w-[360px]
+                       text-center relative text-white"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="bg-white rounded-2xl p-6 w-[360px] text-center relative"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="absolute top-3 right-3 text-white/70 hover:text-white text-lg"
             >
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg"
-              >
-                ✕
-              </button>
+              ✕
+            </button>
 
-              <h2 className="text-lg font-bold text-gray-900 mb-1">
-                {selectedEvent.title}
-              </h2>
+            <h2 className="text-lg font-bold mb-1">{selectedEvent.title}</h2>
 
-              <p className="text-sm text-gray-600 mb-4">
-                Entry Pass – Show this at the entrance
-              </p>
+            <p className="text-sm text-white/70 mb-4">
+              Entry Pass – Show this at the entrance
+            </p>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 bg-gray-50 mb-4">
-                <div className="flex justify-center mb-4">
-                  <QRCodeCanvas
-                    value={selectedEvent.qr_token}
-                    size={200}
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                    level="H"
-                  />
-                </div>
-
-                <div className="bg-white border rounded-lg px-3 py-2">
-                  <p className="text-[11px] text-gray-500 mb-1">QR Token</p>
-                  <p className="text-[11px] font-mono text-gray-800 break-all">
-                    {selectedEvent.qr_token}
-                  </p>
-                </div>
+            <div className="border border-white/30 rounded-xl p-5 bg-black/30 mb-4">
+              <div className="flex justify-center mb-4">
+                <QRCodeCanvas
+                  value={selectedEvent.qr_token}
+                  size={200}
+                  bgColor="#000000"
+                  fgColor="#ffffff"
+                  level="H"
+                />
               </div>
 
-              <p className="text-xs text-gray-500">
-                Please keep this ticket safe until event entry
-              </p>
+              <div className="bg-black/40 border border-white/20 rounded-lg px-3 py-2">
+                <p className="text-[11px] text-white/50 mb-1">QR Token</p>
+                <p className="text-[11px] font-mono text-white break-all">
+                  {selectedEvent.qr_token}
+                </p>
+              </div>
             </div>
+
+            <p className="text-xs text-white/50">
+              Please keep this ticket safe until event entry
+            </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

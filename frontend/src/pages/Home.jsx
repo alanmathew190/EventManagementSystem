@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import GlassLayout from "../components/GlassLayout";
+import Footer from "../components/Footer";
 
 const POSTERS = [
   "https://images.unsplash.com/photo-1540575467063-178a50c2df87", // crowd event
@@ -136,35 +137,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= FEATURE CAROUSEL ================= */}
+      {/* ================= FEATURES ================= */}
       <section className="py-24 px-4 sm:px-6">
-        <div className="max-w-md mx-auto overflow-hidden">
-          <div
-            className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${index * 100}%)` }}
-          >
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl font-extrabold text-white mb-14">
+            Why Choose <span className="text-indigo-400">EventSphere</span>
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURES.map((f, i) => (
-              <div key={i} className="min-w-full flex justify-center">
-                <div
-                  className="p-8 rounded-3xl text-center
-                             bg-white/10 backdrop-blur-2xl
-                             border border-white/20
-                             shadow-[0_20px_60px_rgba(0,0,0,0.6)]
-                             w-full"
-                >
-                  <div className="text-4xl mb-4">{f.icon}</div>
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    {f.title}
-                  </h3>
-                  <p className="text-white/70 text-sm leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
+              <div
+                key={i}
+                className="p-8 rounded-3xl text-center
+                     bg-white/10 backdrop-blur-2xl
+                     border border-white/20
+                     shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                     hover:scale-[1.02] transition"
+              >
+                <div className="text-4xl mb-4">{f.icon}</div>
+
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  {f.title}
+                </h3>
+
+                <p className="text-white/70 text-sm leading-relaxed">
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
+      <Footer/>
     </GlassLayout>
   );
 }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import Spinner from "../components/Spinner";
 import EmptyState from "../components/EmptyState";
+import Footer from "../components/Footer";
 
 export default function EventList() {
   const [events, setEvents] = useState([]);
@@ -37,7 +38,7 @@ export default function EventList() {
   if (loading) return <Spinner size="lg" />;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-black px-6 pt-20 pb-16">
+    <div className="relative min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-black pt-20 ">
       {/* NAV SHIELD */}
       <div className="absolute top-0 left-0 w-full h-36 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none" />
 
@@ -145,8 +146,11 @@ export default function EventList() {
               </div>
             </Link>
           ))}
+          
         </div>
       </div>
+     <Footer/>
     </div>
+    
   );
 }

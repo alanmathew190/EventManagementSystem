@@ -42,7 +42,7 @@ export default function EventList() {
       {/* NAV SHIELD */}
       <div className="absolute top-0 left-0 w-full h-36 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto">
+      <div className="relative max-w-7xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-black text-white mb-2">
@@ -146,11 +146,9 @@ export default function EventList() {
               </div>
             </Link>
           ))}
-          
         </div>
       </div>
-     <Footer/>
+      <Footer />
     </div>
-    
   );
 }

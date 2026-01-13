@@ -57,6 +57,7 @@ Icons: Lucide React
 
 State Management: React Context API
 
+
 📂 Project Structure
 src/
 ├── components/
@@ -70,11 +71,13 @@ src/
 │   └── globals.css
 └── App.tsx
 
+
 ⚙️ Installation & Setup
 git clone https://github.com/your-username/eventsphere.git
 cd eventsphere
 npm install
 npm run dev
+
 
 🎨 Theming & Glass UI
 
@@ -95,8 +98,8 @@ Dark Mode Example
   --glass-border: rgba(255, 255, 255, 0.08);
 }
 
-
 Glass styling is optional and degrades gracefully if not supported.
+
 
 🧪 Accessibility Notes
 
@@ -108,37 +111,7 @@ Contrast-safe text and inputs
 
 Screen reader friendly labels
 
-🤝 Contributing
-
-Contributions are welcome and appreciated!
-
-How to contribute
-
-Fork the repository
-
-Create a feature branch
-
-git checkout -b feature/your-feature-name
-
-
-Commit your changes
-
-git commit -m "Describe your change"
-
-
-Push and open a Pull Request
-
-Suggested PR Labels
-
-enhancement
-
-ui
-
-accessibility
-
-theming
-
-🗺️ Roadmap
+📃⌛Timeline
 
  Event creation & management
 
@@ -146,13 +119,8 @@ theming
 
  Organizer & attendee roles
 
- Improved dark mode support
-
  Reusable UI component library
 
-📄 License
-
-This project is licensed under the MIT License.
 
 🙌 Acknowledgements
 

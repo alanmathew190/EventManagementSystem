@@ -25,10 +25,10 @@ class Event(models.Model):
     place_name = models.CharField(max_length=200)
     location = models.CharField(max_length=300)
     date = models.DateTimeField()
-
+    
     capacity = models.PositiveIntegerField(default=50)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
+    upi_id = models.CharField(max_length=100, null=True, blank=True)
     approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

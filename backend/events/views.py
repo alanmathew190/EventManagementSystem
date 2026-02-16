@@ -38,7 +38,10 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(host=self.request.user, approved=False)
-
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
 # ----------------------------------
 # JOIN EVENT
@@ -171,6 +174,7 @@ def my_events(request):
             "is_paid": r.is_paid,
             "is_approved": r.is_approved,
             "qr_token": str(r.qr_token),
+            
         }
         for r in regs
     ])
@@ -262,7 +266,9 @@ def scan_qr(request):
 @permission_classes([IsAdminUser])
 def pending_events(request):
     events = Event.objects.filter(approved=False)
-    return Response(EventSerializer(events, many=True).data)
+    return Response(
+    EventSerializer(events, many=True, context={"request": request}).data
+)
 
 
 @api_view(["POST"])

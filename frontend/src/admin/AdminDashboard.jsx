@@ -85,53 +85,56 @@ export default function AdminDashboard() {
         {/* EVENT GRID */}
         {events.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="rounded-3xl overflow-hidden
+            {Array.isArray(events) &&
+              events.filter(Boolean).map((event) => (
+                <div
+                  key={event.id}
+                  className="rounded-3xl overflow-hidden
                            bg-white/15 backdrop-blur-2xl
                            border border-white/25
                            shadow-[0_20px_60px_rgba(0,0,0,0.6)]
                            transition-all duration-500
                            hover:bg-white/25 hover:-translate-y-2"
-              >
-                <div className="p-6 text-white space-y-2">
-                  <h2 className="text-lg font-bold leading-snug">
-                    {event.title}
-                  </h2>
-                  <p className="text-sm text-white/70">📍 {event.place_name}</p>
+                >
+                  <div className="p-6 text-white space-y-2">
+                    <h2 className="text-lg font-bold leading-snug">
+                      {event.title}
+                    </h2>
+                    <p className="text-sm text-white/70">
+                      📍 {event.place_name}
+                    </p>
 
-                  {/* ACTIONS */}
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setConfirmApprove(false);
-                      }}
-                      className="flex-1 bg-white/10 hover:bg-white/20
+                    {/* ACTIONS */}
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setConfirmApprove(false);
+                        }}
+                        className="flex-1 bg-white/10 hover:bg-white/20
                                  active:scale-95 text-white
                                  py-2 rounded-xl text-sm font-semibold
                                  transition border border-white/25"
-                    >
-                      View Details
-                    </button>
+                      >
+                        View Details
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setConfirmApprove(true);
-                      }}
-                      className="flex-1 bg-emerald-400/80 hover:bg-emerald-500
+                      <button
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setConfirmApprove(true);
+                        }}
+                        className="flex-1 bg-emerald-400/80 hover:bg-emerald-500
                                  active:scale-95 text-white
                                  py-2 rounded-xl text-sm font-semibold
                                  transition shadow"
-                    >
-                      Approve
-                    </button>
+                      >
+                        Approve
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
 

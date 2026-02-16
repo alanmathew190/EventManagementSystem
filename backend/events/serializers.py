@@ -14,6 +14,7 @@ class EventSerializer(serializers.ModelSerializer):
             "description",
             "image",       # keep real field for upload
             "category",
+            "upi_id",
             "place_name",
             "location",
             "date",

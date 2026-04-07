@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+   <input type="text" name="txt" id="txt">
+<button onclick="getText()">enter</button>
+<p>Your text is <span id="normal"></span></p>
+<p>Reversed text is <span id="reversed"></span></p>
+    <script>
+        function getText(){
+           
+     const text = document.getElementById("txt").value
+      if(text.length>=5){
+     document.getElementById("normal").innerHTML=text
+        let reversed=text.split("").reverse().join("")
+         document.getElementById("reversed").innerHTML=reversed
+      }
+      else{
+        document.getElementById("normal").innerHTML="too short, must be atlest 5 char long"
+      }
+        }
+    </script>
+</body>
+</html>
